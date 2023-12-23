@@ -39,6 +39,45 @@ class PostgreStorage():
     def release_connection(self, connection):
         self.connection_pool.putconn(connection)
 
+    def select_ticker(self):
+        connection = self.get_connection()
+        c = connection.cursor()
+        try:
+            res = c.execute(
+                """
+                SELECT ct1.curr, ct2.curr, dt.ticker FROM ticker dt
+                JOIN currency ct1 ON dt.curr1 = ct1.ID
+                JOIN currency ct2 ON dt.curr2 = ct2.ID;
+                """)
+            data = c.fetchall()
+            return data
+        except Exception as e:
+                print(f"Error fetching data: {e}")
+        finally:
+            if connection:
+                self.release_connection(connection)
+
+    def select_price(self):
+        connection = self.get_connection()
+        c = connection.cursor()
+        try:
+            res = c.execute(
+                """
+                SELECT ct1.curr AS currency1_name, ct2.curr AS currency2_name, tk.ticker, pr.datetime, pr.bid_size, pr.bid_price, pr.ask_size, pr.ask_price, pr.mid_price FROM price pr
+                JOIN ticker tk ON pr.ticker_code = tk.ID
+                JOIN currency ct1 ON tk.curr1 = ct1.ID
+                JOIN currency ct2 ON tk.curr2 = ct2.ID;
+                """
+            )
+            data = c.fetchall()
+            return data
+            
+        except Exception as e:
+            print(f"Error select price tabel : {e}")
+        finally:
+            if connection:
+                self.release_connection(connection)
+
     def insert_ticker(self, data):
         connection = self.get_connection()
         try:
