@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-section Web App</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+    <!-- Navigation menu -->
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#data">Data</a></li>
+            <li><a href="#ticker">Ticker</a></li>
+        </ul>
+    </nav>
+
+    <!-- Sections -->
+    <div id="home" class="section">
+        <!-- Home section content -->
+        <h1>Home Section</h1>
+        <!-- Other content for the home section -->
+    </div>
+
+    <div id="data" class="section">
+        <!-- Data section content -->
+        <h1>Data Section</h1>
+        <!-- Other content for the data section -->
+    </div>
+
+    <div id="ticker" class="section">
+        <!-- Ticker section content -->
+        <h1>Ticker Section</h1>
+        <!-- Other content for the ticker section -->
+    </div>
+
+    <script>
+        // Function to show/hide sections based on hash in URL
+        function showHideSections() {
+            var sections = document.querySelectorAll('.section');
+            sections.forEach(function(section) {
+                if ('#' + section.id === window.location.hash) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        // Show initial section based on URL hash or default to home
+        $(document).ready(function() {
+            if (window.location.hash) {
+                showHideSections();
+            } else {
+                window.location.hash = '#home';
+                showHideSections();
+            }
+        });
+
+        // Handle section change on hash change (for back/forward buttons)
+        window.onhashchange = showHideSections;
+    </script>
+
+</body>
+</html>
