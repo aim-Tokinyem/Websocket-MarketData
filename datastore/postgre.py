@@ -98,6 +98,7 @@ class PostgreStorage():
                 self.release_connection(connection)
 
     def insert_ticker(self, data):
+        print(data)
         connection = self.get_connection()
         try:
             c = connection.cursor()
@@ -120,6 +121,26 @@ class PostgreStorage():
             print("Ticker Inserted")
         except Exception as e:
             print(f"Error inserting ticker: {e}")
+        finally:
+            if connection:
+                self.release_connection(connection)
+
+    
+    def delete_ticker(self,data):
+        connection = self.get_connection()
+        try:
+            c = connection.cursor()
+            res = c.execute(
+                """
+                DELETE FROM ticker WHERE ticker = %s;
+                """,
+                [data]
+            )
+            connection.commit()
+            print(data)
+            print("Ticker Deleted")
+        except Exception as e:
+            print(f"Error deleting ticker: {e}")
         finally:
             if connection:
                 self.release_connection(connection)

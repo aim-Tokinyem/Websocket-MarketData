@@ -17,113 +17,150 @@
         <!-- Options for currency 2 will be populated dynamically -->
     </select>
 
-    <label for="text-input">Additional Information:</label>
-    <input type="text" id="text-input" placeholder="Enter text here">
+    <label for="ticker">Ticker:</label>
+    <input type="text" id="ticker" placeholder="Enter ticker here">
 
     <button onclick="submitData()">Submit</button>
 
-    <!-- ... (other HTML code) ... -->
+    <h1>Ticker Data from PostgreSQL Database</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Currency 1</th>
+                <th>Currency 2</th>
+                <th>Ticker</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="data-table">
+            <!-- Data will be dynamically updated here -->
+        </tbody>
+    </table>
 
-<script>
-    $(document).ready(function() {
-        $.ajax({
-            url: '/currency_data', // Endpoint to fetch currency values from Flask
-            type: 'GET',
-            success: function(response) {
-                populateDropdown('currency1', response.data);
-                populateDropdown('currency2', response.data);
-            },
-            error: function(error) {
-                console.error('Error fetching currency values:', error);
-            }
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                url: '/currency_data',
+                type: 'GET',
+                success: function(response) {
+                    populateDropdown('currency1', response.data);
+                    populateDropdown('currency2', response.data);
+                },
+                error: function(error) {
+                    console.error('Error fetching currency values:', error);
+                }
+            });
         });
-    });
 
-    function populateDropdown(elementId, data) {
-        var dropdown = document.getElementById(elementId);
-        data.forEach(function(item) {
-            var option = document.createElement('option');
-            option.value = item[1]; // Assuming the currency name is at index 1
-            option.textContent = item[1]; // Assuming the currency name is at index 1
-            dropdown.appendChild(option);
+        function populateDropdown(elementId, data) {
+            var dropdown = document.getElementById(elementId);
+            data.forEach(function(item) {
+                var option = document.createElement('option');
+                option.value = item[1];
+                option.textContent = item[1];
+                dropdown.appendChild(option);
+            });
+        }
+
+        function submitData() {
+            var currency1 = document.getElementById('currency1').value;
+            var currency2 = document.getElementById('currency2').value;
+            var additionalInfo = document.getElementById('text-input').value;
+
+            console.log('Currency 1:', currency1);
+            console.log('Currency 2:', currency2);
+            console.log('Additional Info:', additionalInfo);
+        }
+
+        function fetchData() {
+            $.ajax({
+                url: '/ticker_data',
+                type: 'GET',
+                success: function(response) {
+                    console.log('Received data:', response.data);
+                    updateUI(response.data);
+                },
+                error: function(error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        }
+
+        function updateUI(data) {
+            $('#data-table').empty();
+
+            data.forEach(function(item) {
+                $('#data-table').append(`
+                    <tr>
+                        <td>${item[0]}</td>
+                        <td>${item[1]}</td>
+                        <td>${item[2]}</td>
+                        <td>
+                            <button onclick="editRow('${item[2]}')">Edit</button>
+                            <button onclick="deleteRow('${item[2]}')">Delete</button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function editRow(ticker) {
+            console.log('Edit button clicked for ticker:', ticker);
+            // Implement your edit logic here
+        }
+
+        function deleteRow(ticker) {
+            console.log('Delete button clicked for ticker:', ticker);
+            var data = {
+                'data': ticker
+            };
+            $.ajax({
+                url: '/ticker_delete',
+                type: 'POST',
+                contentType: 'application/json', // Set content type to JSON
+                data: JSON.stringify(data), // Send data as JSON
+                success: function(response) {
+                    console.log('Row deleted successfully');
+                    fetchData(); // Refresh data after deletion
+                },
+                error: function(error) {
+                    console.error('Error deleting row:', error);
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            fetchData();
         });
-    }
 
-    function submitData() {
-        var currency1 = document.getElementById('currency1').value;
-        var currency2 = document.getElementById('currency2').value;
-        var additionalInfo = document.getElementById('text-input').value;
 
-        console.log('Currency 1:', currency1);
-        console.log('Currency 2:', currency2);
-        console.log('Additional Info:', additionalInfo);
-    }
-</script>
+        function submitData() {
+            var currency1 = document.getElementById('currency1').value;
+            var currency2 = document.getElementById('currency2').value;
+            var ticker = document.getElementById('ticker').value;
 
-<h1>Ticker Data from PostgreSQL Database</h1>
-<table>
-    <thead>
-        <tr>
-            <th>Currency 1</th>
-            <th>Currency 2</th>
-            <th>Ticker</th>
-        </tr>
-    </thead>
-    <tbody id="data-table">
-        <!-- Data will be dynamically updated here -->
-    </tbody>
-</table>
+            // Prepare data to send to the backend
+            var data = {
+                'currency1': currency1,
+                'currency2': currency2,
+                'ticker': ticker
+            };
 
-<script>
-    function fetchData() {
-        $.ajax({
-            url: '/ticker_data', // Endpoint to fetch data from Flask
-            type: 'GET',
-            success: function(response) {
-                console.log('Received data:', response.data); // Log received data
-                updateUI(response.data);
-            },
-            error: function(error) {
-                console.error('Error fetching data:', error);
-            }
-        });
-    }
-
-    function updateUI(data) {
-        $('#data-table').empty(); // Clear existing data
-
-        // Display new data
-        data.forEach(function(item) {
-            $('#data-table').append(`
-                <tr>
-                    <td>${item[0]}</td>
-                    <td>${item[1]}</td>
-                    <td>${item[2]}</td>
-                    <td>
-                        <button onclick="editRow(${item[0]})">Edit</button>
-                        <button onclick="deleteRow(${item[0]})">Delete</button>
-                    </td>
-                </tr>
-            `);
-        });
-    }
-
-    // Function placeholders for edit and delete actions
-    function editRow(id) {
-        console.log('Edit button clicked for ID:', id);
-        // Implement your edit logic here
-    }
-
-    function deleteRow(id) {
-        console.log('Delete button clicked for ID:', id);
-        // Implement your delete logic here
-    }
-
-    // Initial fetch when the page loads
-    $(document).ready(function() {
-        fetchData();
-    });
-</script>
-
+            // Send data to the backend using AJAX
+            $.ajax({
+                url: '/ticker_post', // Endpoint to submit data to Flask
+                type: 'POST',
+                contentType: 'application/json', // Set content type to JSON
+                data: JSON.stringify(data), // Send data as JSON
+                success: function(response) {
+                    console.log('Data submitted successfully:', response.message);
+                    fetchData(); // Refresh data after successful submission
+                },
+                error: function(error) {
+                    console.error('Error submitting data:', error.responseJSON.error);
+                }
+            });
+        }
+    </script>
 </body>
 </html>
