@@ -5,6 +5,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+    <div id="navbar"></div>
     <h1>Real-time Data from PostgreSQL Database</h1>
     <table>
         <thead>
@@ -20,6 +21,17 @@
             <!-- Data will be dynamically updated here -->
         </tbody>
     </table>
+
+    <script>
+        // Fetch the navbar.html content using Fetch API
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                // Insert the navbar HTML into the div with id="navbar"
+                document.getElementById('navbar').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching navbar:', error));
+    </script>
 
     <script>
         function fetchData() {

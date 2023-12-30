@@ -87,10 +87,10 @@ def ticker_list():
     except Exception as e:
         return str(e), 500
     
-@app.route('/home')
+@app.route('/navbar.html')
 def home():
     try:
-        return render_template('index.html')
+        return render_template('navbar.html')
     except Exception as e:
         return str(e), 500
 

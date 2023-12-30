@@ -5,6 +5,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+    <div id="navbar"></div>
     <h1>Data Input</h1>
 
     <label for="currency1">Currency 1:</label>
@@ -52,7 +53,16 @@
         <button id="update-button">Update</button>
     </div>
 
-    
+    <script>
+        // Fetch the navbar.html content using Fetch API
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                // Insert the navbar HTML into the div with id="navbar"
+                document.getElementById('navbar').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching navbar:', error));
+    </script>
 
     <script>
         $(document).ready(function() {
