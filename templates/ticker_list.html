@@ -37,6 +37,23 @@
         </tbody>
     </table>
 
+    <!-- Edit Modal -->
+    <div id="edit-modal" style="display: none;">
+        <h2>Edit Ticker Data</h2>
+        <label for="edited-currency1">Currency 1:</label>
+        <select id="edited-currency1"></select>
+        <br>
+        <label for="edited-currency2">Currency 2:</label>
+        <select id="edited-currency2"></select>
+        <br>
+        <label for="edited-ticker">Ticker:</label>
+        <input type="text" id="edited-ticker" placeholder="Enter edited ticker">
+        <br>
+        <button id="update-button">Update</button>
+    </div>
+
+    
+
     <script>
         $(document).ready(function() {
             $.ajax({
@@ -96,7 +113,7 @@
                         <td>${item[1]}</td>
                         <td>${item[2]}</td>
                         <td>
-                            <button onclick="editRow('${item[2]}')">Edit</button>
+                            <button onclick="editRow('${item[0]}','${item[1]}','${item[2]}')">Edit</button>
                             <button onclick="deleteRow('${item[2]}')">Delete</button>
                         </td>
                     </tr>
@@ -104,10 +121,9 @@
             });
         }
 
-        function editRow(ticker) {
-            console.log('Edit button clicked for ticker:', ticker);
-            // Implement your edit logic here
-        }
+        // function editRow(ticker) {
+        //     console.log('Edit button clicked for ticker:', ticker);
+        // }
 
         function deleteRow(ticker) {
             console.log('Delete button clicked for ticker:', ticker);
@@ -161,6 +177,74 @@
                 }
             });
         }
+    </script>
+
+    <script>
+
+
+        function fetchAndPopulateDropdown(elementId, selectedCurrency) {
+            var dropdown = $('#' + elementId);
+            dropdown.empty();
+            
+            $.ajax({
+                url: '/currency_data',
+                type: 'GET',
+                success: function(response) {
+                    response.data.forEach(function(item) {
+                        var option = $('<option></option>').attr('value', item[1]).text(item[1]);
+                        if (item[1] === selectedCurrency) {
+                            option.attr('selected', true);
+                        }
+                        dropdown.append(option);
+                    });
+                },
+                error: function(error) {
+                    console.error('Error fetching currency values:', error);
+                }
+            });
+        }
+
+
+        function editRow(currency1, currency2, ticker) {
+            console.log('Edit button clicked for ticker:', ticker);
+            currentEditTicker = ticker; // Store the current ticker value
+            fetchAndPopulateDropdown('edited-currency1', currency1);
+            fetchAndPopulateDropdown('edited-currency2', currency2);
+            $('#edited-ticker').val(ticker);
+            $('#edit-modal').show();
+            $('#update-button').off('click').on('click', function() {
+                updateData(ticker);
+            });
+        }
+
+        function updateData(currentEditTicker) {
+            let editedCurrency1 = $('#edited-currency1').val();
+            let editedCurrency2 = $('#edited-currency2').val();
+            let editedTicker = $('#edited-ticker').val();
+
+            let data = {
+                'currency1': editedCurrency1,
+                'currency2': editedCurrency2,
+                'ticker': editedTicker,
+                'existing_ticker': currentEditTicker // Use the stored current ticker value
+            };
+            console.log('Data being sent to backend:', data);
+            $.ajax({
+                url: '/ticker_update',
+                type: 'POST',
+                contentType: 'application/json', // Set content type to JSON
+                data: JSON.stringify(data), // Send data as JSON
+                success: function(response) {
+                    console.log('Data updated successfully:', response.message);
+                    $('#edit-modal').hide();
+                    fetchData(); // Refresh data after successful update
+                },
+                error: function(error) {
+                    console.error('Error updating data:', error.responseJSON.error);
+                }
+            });
+        }
+
     </script>
 </body>
 </html>

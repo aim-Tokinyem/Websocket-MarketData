@@ -125,7 +125,29 @@ class PostgreStorage():
             if connection:
                 self.release_connection(connection)
 
-    
+    def update_ticker(self,data):
+        connection = self.get_connection()
+        try:
+            c = connection.cursor()
+            res = c.execute(
+                """
+                UPDATE ticker
+                SET curr1 = (SELECT ID FROM currency WHERE curr = %s),
+                    curr2 = (SELECT ID FROM currency WHERE curr = %s),
+                    ticker = %s
+                WHERE ticker = %s;
+                """,
+                [data[0],data[1],data[2],data[3]]
+            )
+            connection.commit()
+            print("Ticker Updated")
+        except Exception as e:
+            print(f"Error updating ticker: {e}")
+        finally:
+            if connection:
+                self.release_connection(connection)
+
+
     def delete_ticker(self,data):
         connection = self.get_connection()
         try:

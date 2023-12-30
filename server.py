@@ -47,7 +47,6 @@ def ticker_data():
         return jsonify({'error': str(e)}), 500
 
 
-# Delete masih ggal
 @app.route('/ticker_delete', methods=['POST'])
 def ticker_delete():
     try:
@@ -58,6 +57,20 @@ def ticker_delete():
         return jsonify({'message': f"Row with ID {ticker_name} deleted successfully"}), 200
     except Exception as e:
         # Handle exceptions or errors here
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/ticker_update', methods=['POST'])
+def ticker_update():
+    try:
+        # Get the ID of the row to delete from the request data
+        cur1 = request.json.get('currency1')
+        cur2 = request.json.get('currency2')
+        ticker = request.json.get('ticker')
+        existing_ticker = request.json.get('existing_ticker')
+        data = [cur1,cur2,ticker,existing_ticker]
+        postgres.update_ticker(data)
+        return jsonify({'message': f"Row with ID {existing_ticker} updated successfully"}), 200
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
     
 @app.route('/price_list')

@@ -17,7 +17,7 @@ class WebSocketClient:
     def on_message(self, ws, message):
         json_message = json.loads(message)
         print(json_message)
-        if json_message['data'] and json_message['messageType'] == "A":
+        if json_message['messageType'] == "A":
             self.postgre_storage.insert_price(json_message['data'])
         else:
             pass
