@@ -2,25 +2,26 @@
 <html>
 <head>
     <title>Real-time Data Display</title>
+    <style>
+        /* Style for the box or square */
+        .currency-box {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 10px;
+            width: 200px;
+            height: 150px;
+            display: inline-block;
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div id="navbar"></div>
     <h1>Real-time Data from PostgreSQL Database</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Source Currency</th>
-                <th>Target Currency</th>
-                <th>Date</th>
-                <th>BID</th>
-                <th>ASK</th>
-            </tr>
-        </thead>
-        <tbody id="data-table">
-            <!-- Data will be dynamically updated here -->
-        </tbody>
-    </table>
+
+    <div id="data-container">
+        <!-- Data will be dynamically updated here -->
+    </div>
 
     <script>
         // Fetch the navbar.html content using Fetch API
@@ -31,9 +32,7 @@
                 document.getElementById('navbar').innerHTML = data;
             })
             .catch(error => console.error('Error fetching navbar:', error));
-    </script>
 
-    <script>
         function fetchData() {
             $.ajax({
                 url: '/price_data', // Endpoint to fetch data from Flask
@@ -49,24 +48,24 @@
         }
 
         function updateUI(data) {
-            $('#data-table').empty(); // Clear existing data
+            const dataContainer = document.getElementById('data-container');
+            dataContainer.innerHTML = ''; // Clear existing data
 
             // Display new data
             data.forEach(function(item) {
-                $('#data-table').append(`
-                    <tr>
-                        <td>${item[0]}</td>
-                        <td>${item[1]}</td>
-                        <td>${item[3]}</td>
-                        <td>${item[5]}</td>
-                        <td>${item[7]}</td>
-                    </tr>
-                `);
+                const currencyBox = document.createElement('div');
+                currencyBox.classList.add('currency-box');
+                currencyBox.innerHTML = `
+                    <p>${item[0]}/${item[1]}</p>
+                    <p>BID: ${item[5]}/ASK: ${item[7]}</p>
+                    <p>Date: ${item[3]}</p>
+                `;
+                dataContainer.appendChild(currencyBox);
             });
         }
 
         // Fetch data every 5 seconds (adjust as needed)
-        setInterval(fetchData, 1000); // Polling interval: 5000 milliseconds (5 seconds)
+        setInterval(fetchData, 5000); // Polling interval: 5000 milliseconds (5 seconds)
 
         // Initial fetch when the page loads
         $(document).ready(function() {
