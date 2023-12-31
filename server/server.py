@@ -1,10 +1,29 @@
 from flask import Flask, render_template, jsonify, request
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+import sys
+from dotenv import load_dotenv
+import os
+
+current_dir = os.path.dirname(__file__)
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
 from datastore.postgre import PostgreStorage
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'super-secret'
 
-postgres = PostgreStorage()
+jwt = JWTManager(app)
+
+load_dotenv()
+db_name = os.getenv('DB_NAME')
+db_user = os.getenv('DB_USERNAME')
+db_pass = os.getenv('DB_PASSWORD')
+db_host = os.getenv('DB_HOST')
+db_port = os.getenv('DB_PORT')
+
+postgres = PostgreStorage(db_name,db_user,db_pass,db_host,db_port)
 
 @app.route('/price_data')
 def gets_data():
@@ -88,9 +107,23 @@ def ticker_list():
         return str(e), 500
     
 @app.route('/navbar.html')
-def home():
+def navbar():
     try:
         return render_template('navbar.html')
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/styles.css')
+def css():
+    try:
+        return render_template('styles.css')
+    except Exception as e:
+        return str(e), 500
+
+@app.route('/home')
+def home():
+    try:
+        return render_template('index.html')
     except Exception as e:
         return str(e), 500
 

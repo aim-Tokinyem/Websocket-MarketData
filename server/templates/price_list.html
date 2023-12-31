@@ -1,26 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Real-time Data Display</title>
+    <title>Real-time Data Display - Dark Mode</title>
     <style>
-        /* Style for the box or square */
+        /* Style for the input elements */
+
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        /* Dark mode styles for the box or square */
         .currency-box {
-            border: 1px solid #ccc;
+            border: 1px solid #555;
             padding: 20px;
             margin: 10px;
-            width: 200px;
-            height: 150px;
+            width: 250px;
+            height: 180px;
             display: inline-block;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: #2d2d2d;
+            transition: transform 0.3s ease-in-out;
+        }
+        .currency-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .currency-details {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+        }
+        #data-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div id="navbar"></div>
-    <h1>Real-time Data from PostgreSQL Database</h1>
-
-    <div id="data-container">
-        <!-- Data will be dynamically updated here -->
+    <div class="container">
+        <h1>Real-time Data from PostgreSQL Database</h1>
+        <div id="data-container">
+            <!-- Data will be dynamically updated here -->
+        </div>
     </div>
 
     <script>
@@ -56,9 +90,12 @@
                 const currencyBox = document.createElement('div');
                 currencyBox.classList.add('currency-box');
                 currencyBox.innerHTML = `
-                    <p>${item[0]}/${item[1]}</p>
-                    <p>BID: ${item[5]}/ASK: ${item[7]}</p>
-                    <p>Date: ${item[3]}</p>
+                    <h3>${item[0]}/${item[1]}</h3>
+                    <div class="currency-details">
+                        <p>BID: ${item[5]}</p>
+                        <p>ASK: ${item[7]}</p>
+                        <p>Date: ${item[3]}</p>
+                    </div>
                 `;
                 dataContainer.appendChild(currencyBox);
             });

@@ -9,13 +9,13 @@ from psycopg2 import pool
 class PostgreStorage():
     sid = "postgre"
 
-    def __init__(self):
+    def __init__(self,dbname,user,password,host,port):
         db_params = {
-            "dbname" : "Market_Data",
-            "user":"postgres",
-            "password":"Tokinyem_0311",
-            "host":"localhost",
-            "port":"5433",
+            "dbname" : dbname,
+            "user":user,
+            "password":password,
+            "host":host,
+            "port":port,
         }
         
         self.connection_pool = psycopg2.pool.SimpleConnectionPool(

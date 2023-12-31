@@ -4,7 +4,7 @@ import threading
 import time
 
 class WebSocketClient:
-    def __init__(self, ws_address, ticker, postgre_storage):
+    def __init__(self, ws_address, web_socket_token, ticker,  postgre_storage):
         self.ws_address = ws_address
         self.ws = websocket.WebSocketApp(ws_address,
                                          on_message=self.on_message,
@@ -13,14 +13,13 @@ class WebSocketClient:
         self.ws.on_open = self.on_open
         self.ticker = ticker
         self.postgre_storage = postgre_storage
+        self.web_socket_token=web_socket_token
 
     def on_message(self, ws, message):
         json_message = json.loads(message)
         print(json_message)
         if json_message['messageType'] == "A":
             self.postgre_storage.insert_price(json_message['data'])
-        else:
-            pass
 
     def on_open(self, ws):
         print("WebSocket successfully connected!")
@@ -35,10 +34,9 @@ class WebSocketClient:
     def send_request(self):
         subscribe = {
             'eventName': 'subscribe',
-            'authorization': '379675600c272f6163caae182d8894f26cd9bddc',
+            'authorization': self.web_socket_token,
             'eventData': {
                 'tickers': self.ticker,
-                'thresholdLevel': 5
             }
         }
         self.ws.send(json.dumps(subscribe))

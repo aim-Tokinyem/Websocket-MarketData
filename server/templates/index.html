@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Input Page</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div id="navbar"></div>
+    <script>
+        // Fetch the navbar.html content using Fetch API
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                // Insert the navbar HTML into the div with id="navbar"
+                document.getElementById('navbar').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching navbar:', error));
+    </script>
+
+<main>
+    <section id="hero">
+      <!-- Your hero section content here -->
+      <h1>Welcome to Your Website</h1>
+      <p>A brief and catchy description of what you offer.</p>
+      <a href="#contact" class="btn">Get in Touch</a>
+    </section>
+
+    <section id="about">
+      <!-- About section content here -->
+      <h2>About Us</h2>
+      <p>This website provides real-time Forex value updates sourced through a WebSocket API from <a href="https://api.tiingo.com" target="_blank">api.tiingo.com</a>. The project is built using Python and Flask.</p>
+    </section>
+
+    <section id="portfolio">
+      <!-- Portfolio section content here -->
+      <h2>Portfolio</h2>
+      <!-- Showcase your portfolio items here -->
+    </section>
+
+    <section id="contact">
+      <!-- Contact section content here -->
+      <h2>Contact Us</h2>
+      <p>Include a contact form, contact details, or a map here.</p>
+    </section>
+  </main>
+
+  <footer>
+    <!-- Footer content, such as copyright information -->
+    <p>&copy; 2023 Your Website. All rights reserved.</p>
+  </footer>
+</body>
+
+</body>
+</html>
