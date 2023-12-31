@@ -6,6 +6,43 @@ from typing import Iterable, List, Optional
 import psycopg2
 from psycopg2 import pool
 
+CREATE_CURRENCY_TABLE="""
+    -- Table: public.currency
+    CREATE TABLE IF NOT EXISTS public.currency (
+        id SERIAL PRIMARY KEY,
+        curr VARCHAR(10) NOT NULL UNIQUE
+    );
+    INSERT INTO public.currency (curr) VALUES
+        ('USD'),
+        ('EUR'),
+        ('JPY')
+    ON CONFLICT (curr) DO NOTHING;
+"""
+
+CREATE_TICKER_TABLE="""
+    -- Table: public.ticker
+    CREATE TABLE IF NOT EXISTS public.ticker (
+        id SERIAL PRIMARY KEY,
+        curr1 INTEGER REFERENCES public.currency(id),
+        curr2 INTEGER REFERENCES public.currency(id),
+        ticker VARCHAR(10) NOT NULL UNIQUE
+    );
+"""
+
+CREATE_PRICE_TABLE="""
+    -- Table: public.price
+    CREATE TABLE IF NOT EXISTS public.price (
+        id SERIAL PRIMARY KEY,
+        ticker_code INTEGER UNIQUE REFERENCES public.ticker(id),
+        datetime TIMESTAMPTZ,
+        bid_size DOUBLE PRECISION,
+        bid_price DOUBLE PRECISION,
+        ask_size DOUBLE PRECISION,
+        ask_price DOUBLE PRECISION,
+        mid_price DOUBLE PRECISION
+    );
+"""
+
 class PostgreStorage():
     sid = "postgre"
 
@@ -25,7 +62,9 @@ class PostgreStorage():
         )
 
         self.conn = self.get_connection()
-        # self.data = data
+        self.create_tables_if_not_exist(CREATE_CURRENCY_TABLE)
+        self.create_tables_if_not_exist(CREATE_TICKER_TABLE)
+        self.create_tables_if_not_exist(CREATE_PRICE_TABLE)
 
     def get_connection(self):
         conn_ = self.connection_pool.getconn()
@@ -38,6 +77,20 @@ class PostgreStorage():
 
     def release_connection(self, connection):
         self.connection_pool.putconn(connection)
+
+    def create_tables_if_not_exist(self,create_table_queries):
+        connection = self.get_connection()
+        try:
+            c = connection.cursor()
+            with c as cursor:
+                cursor.execute(create_table_queries)
+            connection.commit()
+            print("Tables created successfully (if they didn't exist).")
+        except psycopg2.Error as e:
+            print("Error creating tables:", e)
+        finally:
+            if connection:
+                self.release_connection(connection)
 
     def select_ticker(self):
         connection = self.get_connection()
@@ -98,7 +151,6 @@ class PostgreStorage():
                 self.release_connection(connection)
 
     def insert_ticker(self, data):
-        print(data)
         connection = self.get_connection()
         try:
             c = connection.cursor()
