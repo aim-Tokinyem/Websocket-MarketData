@@ -62,9 +62,9 @@ class PostgreStorage():
         )
 
         self.conn = self.get_connection()
-        self.create_tables_if_not_exist(CREATE_CURRENCY_TABLE)
-        self.create_tables_if_not_exist(CREATE_TICKER_TABLE)
-        self.create_tables_if_not_exist(CREATE_PRICE_TABLE)
+        self.create_tables_if_not_exist(CREATE_CURRENCY_TABLE, "CURRENCY")
+        self.create_tables_if_not_exist(CREATE_TICKER_TABLE, "TICKER")
+        self.create_tables_if_not_exist(CREATE_PRICE_TABLE, "PRICE")
 
     def get_connection(self):
         conn_ = self.connection_pool.getconn()
@@ -78,14 +78,14 @@ class PostgreStorage():
     def release_connection(self, connection):
         self.connection_pool.putconn(connection)
 
-    def create_tables_if_not_exist(self,create_table_queries):
+    def create_tables_if_not_exist(self,create_table_queries, name):
         connection = self.get_connection()
         try:
             c = connection.cursor()
             with c as cursor:
                 cursor.execute(create_table_queries)
             connection.commit()
-            print("Tables created successfully (if they didn't exist).")
+            print(f"{name} tables created successfully (if they didn't exist).")
         except psycopg2.Error as e:
             print("Error creating tables:", e)
         finally:
@@ -206,9 +206,15 @@ class PostgreStorage():
             c = connection.cursor()
             res = c.execute(
                 """
+                BEGIN;
+
+                DELETE FROM price WHERE ticker_code = (SELECT id FROM ticker WHERE ticker = %s);
+
                 DELETE FROM ticker WHERE ticker = %s;
+                
+                COMMIT;
                 """,
-                [data]
+                [data, data]
             )
             connection.commit()
             print(data)

@@ -1,4 +1,5 @@
-from price_websocket import WebSocketClient
+# from loggers.config_logging import LoggerConfig
+from websockets.price_websocket import WebSocketClient
 import sys
 from dotenv import load_dotenv
 import os
@@ -9,7 +10,8 @@ sys.path.append(parent_dir)
 
 from datastore.postgre import PostgreStorage
 
-
+# logger_config = LoggerConfig('WebSocket')
+    
 if __name__ == "__main__":
     load_dotenv()
     db_name = os.getenv('DB_NAME')
@@ -31,4 +33,7 @@ if __name__ == "__main__":
         websocket_client.start()
     except KeyboardInterrupt:
         websocket_client.ws.close()
+        #logging.error("Program interrupted. WebSocket connection closed.")
         print("Program interrupted. WebSocket connection closed.")
+
+    

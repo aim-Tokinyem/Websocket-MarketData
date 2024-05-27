@@ -2,6 +2,10 @@ import websocket
 import simplejson as json
 import threading
 import time
+from loggers.config_logging import LoggerConfig
+import logging
+
+logger_config = LoggerConfig('WebSocket')
 
 class WebSocketClient:
     def __init__(self, ws_address, web_socket_token, ticker,  postgre_storage):
@@ -18,18 +22,23 @@ class WebSocketClient:
     def on_message(self, ws, message):
         json_message = json.loads(message)
         print(json_message)
+        logging.info(json_message)
         if json_message['messageType'] == "A":
             self.postgre_storage.insert_price(json_message['data'])
 
     def on_open(self, ws):
         print("WebSocket successfully connected!")
+        logging.info("WebSocket successfully connected!")
         self.send_request()
 
     def on_close(self, ws, close_status_code, close_ms):
         print("WebSocket is closed")
+        logging.info("WebSocket is closed")
     
     def on_error(self, ws, error):
-        print(f"WebSocket Error {error}")
+        self.error = error
+        print(f"WebSocket Error {self.error}")
+        logging.error(f"WebSocket Error {self.error}")
 
     def send_request(self):
         subscribe = {
@@ -43,9 +52,10 @@ class WebSocketClient:
 
     def start(self):
         print(f"Connecting to WebSocket {self.ws_address}")
+        logging.info(f"Connecting to WebSocket {self.ws_address}")
         try:
             self.ws.run_forever()
         except KeyboardInterrupt:
             self.ws.close()
             print("WebSocket connection closed due to KeyboardInterrupt")
-
+            logging.error("WebSocket connection closed due to KeyboardInterrupt")

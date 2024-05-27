@@ -3,6 +3,9 @@ from flask_jwt_extended import JWTManager, jwt_required, create_access_token, ge
 import sys
 from dotenv import load_dotenv
 import os
+from loggers.config_logging import LoggerConfig
+import logging
+
 
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.dirname(current_dir)
@@ -10,6 +13,8 @@ sys.path.append(parent_dir)
 
 from datastore.postgre import PostgreStorage
 
+
+logger_config = LoggerConfig('Server')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret'
@@ -28,17 +33,21 @@ postgres = PostgreStorage(db_name,db_user,db_pass,db_host,db_port)
 @app.route('/price_data')
 def gets_data():
     try:
-        data = postgres.select_price()  
+        data = postgres.select_price()
+        logging.info(f'{str(data)}')
         return jsonify({'data': data})
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
     
 @app.route('/currency_data')
 def currency_data():
     try:
         data = postgres.select_currency() 
+        logging.info(f'{str(data)}')
         return jsonify({'data': data})
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
 
 @app.route('/ticker_post', methods=['POST'])
@@ -50,9 +59,11 @@ def ticker_post():
 
         data = [currency1,currency2,ticker]
         postgres.insert_ticker(data)  
-        
+
+        logging.info('Data inserted successfully')
         return jsonify({'message': 'Data inserted successfully'}), 200
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
 
 
@@ -61,8 +72,10 @@ def ticker_post():
 def ticker_data():
     try:
         data = postgres.select_ticker()
+        logging.info(f'{str(data)}')
         return jsonify({'data': data})
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
 
 
@@ -73,8 +86,10 @@ def ticker_delete():
         ticker_name = request.json.get('data')  # Assuming the ID is passed in the JSON payload
         print(ticker_name)
         postgres.delete_ticker(ticker_name)
+        logging.info(f"Row with ID {ticker_name} deleted successfully")
         return jsonify({'message': f"Row with ID {ticker_name} deleted successfully"}), 200
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         # Handle exceptions or errors here
         return jsonify({'error': str(e)}), 500
     
@@ -88,44 +103,56 @@ def ticker_update():
         existing_ticker = request.json.get('existing_ticker')
         data = [cur1,cur2,ticker,existing_ticker]
         postgres.update_ticker(data)
+        logging.info(f"Row with ID {existing_ticker} updated successfully")
         return jsonify({'message': f"Row with ID {existing_ticker} updated successfully"}), 200
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
     
 @app.route('/price_list')
 def display_data():
     try:
+        logging.info(f'price_list.html')
         return render_template('price_list.html')
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return str(e), 500
     
 @app.route('/ticker_list')
 def ticker_list():
     try:
+        logging.info(f'ticker_list.html')
         return render_template('ticker_list.html')
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return str(e), 500
     
 @app.route('/navbar.html')
 def navbar():
     try:
+        logging.info(f'navbar.html')
         return render_template('navbar.html')
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return str(e), 500
 
 @app.route('/styles.css')
 def css():
     try:
+        logging.info(f'styles.css')
         return render_template('styles.css')
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return str(e), 500
 
 @app.route('/home')
 def home():
     try:
+        logging.info(f'index.html')
         return render_template('index.html')
     except Exception as e:
+        logging.error(f'Error message : {str(e)}')
         return str(e), 500
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
