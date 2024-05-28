@@ -33,7 +33,7 @@
             font-size: 16px;
             margin-top: 10px;
         }
-        h1 {
+        h1, h2, h3, h4 {
             text-align: center;
             margin-top: 30px;
         }
@@ -45,6 +45,27 @@
             max-width: 1200px;
             margin: 0 auto;
         }
+        #filter-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #filter-container label {
+            margin: 0 10px;
+        }
+        #filter-container input {
+            padding: 10px;
+            margin: 0 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+        #filter-container input:focus {
+            outline: none;
+            border-color: #888;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -52,6 +73,14 @@
     <div id="navbar"></div>
     <div class="container">
         <h1>Real-time Data from PostgreSQL Database</h1>
+        <h3>Filter</h3>
+        <div id="filter-container">
+            <label for="currency1-filter">Currency 1:</label>
+            <input type="text" id="currency1-filter" placeholder="Enter currency 1">
+            <label for="currency2-filter">Currency 2:</label>
+            <input type="text" id="currency2-filter" placeholder="Enter currency 2">
+        </div>
+        
         <div id="data-container">
             <!-- Data will be dynamically updated here -->
         </div>
@@ -85,27 +114,43 @@
             const dataContainer = document.getElementById('data-container');
             dataContainer.innerHTML = ''; // Clear existing data
 
-            // Display new data
-            data.forEach(function(item) {
-                // Parse the date string and convert it to a Date object
-                const date = new Date(item[3]);
-                
-                // Convert the date to local time zone
-                const localDate = date.toLocaleString(); // This will format the date according to your local time zone
+            const filterInput1 = document.getElementById('currency1-filter');
+            const filterValue1 = filterInput1.value.toUpperCase(); // Get filter value and convert to uppercase
 
-                const currencyBox = document.createElement('div');
-                currencyBox.classList.add('currency-box');
-                currencyBox.innerHTML = `
-                    <h3>${item[0]}/${item[1]}</h3>
-                    <div class="currency-details">
-                        <p>BID: ${item[5]}</p>
-                        <p>ASK: ${item[7]}</p>
-                        <p>Date: ${localDate}</p> <!-- Display the local date -->
-                    </div>
-                `;
-                dataContainer.appendChild(currencyBox);
+            const filterInput2 = document.getElementById('currency2-filter');
+            const filterValue2 = filterInput2.value.toUpperCase(); // Get filter value and convert to uppercase
+
+            data.forEach(function(item) {
+                const cur1Match = filterValue1 === '' || item[0].toUpperCase() === filterValue1;
+                const cur2Match = filterValue2 === '' || item[1].toUpperCase() === filterValue2;
+
+                if (cur1Match && cur2Match) {
+                    const date = new Date(item[3]);
+                    const localDate = date.toLocaleString();
+
+                    const currencyBox = document.createElement('div');
+                    currencyBox.classList.add('currency-box');
+                    currencyBox.innerHTML = `
+                        <h3>${item[0]}/${item[1]}</h3>
+                        <div class="currency-details">
+                            <p>BID: ${item[5]}</p>
+                            <p>ASK: ${item[7]}</p>
+                            <p>Date: ${localDate}</p>
+                        </div>
+                    `;
+                    dataContainer.appendChild(currencyBox);
+                }
             });
         }
+
+        // Fetch data initially and set up event listeners for filter inputs
+        $(document).ready(function() {
+            fetchData();
+
+            // Add event listeners to filter inputs to update the UI when filter values change
+            $('#currency1-filter').on('input', fetchData);
+            $('#currency2-filter').on('input', fetchData);
+        });
 
         // Fetch data every 1 seconds (adjust as needed)
         setInterval(fetchData, 1000); // Polling interval: 1000 milliseconds (1 seconds)
