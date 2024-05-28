@@ -2,6 +2,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 class LoggerConfig:
     def __init__(self, log_name):
@@ -9,13 +10,13 @@ class LoggerConfig:
         self.log_dir = os.getenv('LOG_DIR')
         self.log_name = log_name
         self.full_path = self.log_dir + self.log_name
+        self.date = datetime.now().strftime("%Y-%m-%d")
         self.configure_logging()
 
     def configure_logging(self):
         os.makedirs(self.full_path, exist_ok=True)  # Create 'logs' directory if it doesn't exist
-
-        log_path = os.path.join(self.full_path, self.log_name + '.log')  # Path to the log file within 'logs' directory
-        print(self.log_dir, type(self.log_dir))
+        
+        log_path = os.path.join(self.full_path, self.log_name + '_' + self.date + '.log')  # Path to the log file within 'logs' directory
         handler = TimedRotatingFileHandler(
             filename=log_path,
             when='midnight',  # Rotate at midnight
