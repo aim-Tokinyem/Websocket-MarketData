@@ -91,9 +91,9 @@
     <table>
         <thead>
             <tr>
-                <th>Currency 1</th>
-                <th>Currency 2</th>
-                <th>Ticker</th>
+                <th id="currency1-header">Currency 1</th>
+                <th id="currency2-header">Currency 2</th>
+                <th id="ticker-header">Ticker</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -115,6 +115,7 @@
         <input type="text" id="edited-ticker" placeholder="Enter edited ticker">
         <br>
         <button id="update-button">Update</button>
+        <button id="cancel-button">Cancel</button>
     </div>
 
     <script>
@@ -289,6 +290,9 @@
             $('#update-button').off('click').on('click', function() {
                 updateData(ticker);
             });
+            $('#cancel-button').off('click').on('click', function() {
+                 $('#edit-modal').hide();
+            });
         }
 
         function updateData(currentEditTicker) {
@@ -318,6 +322,62 @@
                 }
             });
         }
+
+        var sortingOrders = {};
+
+        function sortTable(columnIndex) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById("data-table");
+            switching = true;
+            
+            // Initialize sorting order for this column if not already defined
+            if (!sortingOrders[columnIndex]) {
+                sortingOrders[columnIndex] = 'asc'; // Default to ascending order
+            }
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                for (i = 0; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[columnIndex];
+                    y = rows[i + 1].getElementsByTagName("TD")[columnIndex];
+
+                    // Compare based on the sorting order
+                    if (sortingOrders[columnIndex] === 'asc') {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+
+            // Toggle sorting order for the next click
+            sortingOrders[columnIndex] = (sortingOrders[columnIndex] === 'asc') ? 'desc' : 'asc';
+        }
+
+
+        document.getElementById("currency1-header").addEventListener("click", function() {
+            sortTable(0); // Index of Currency 1 column
+        });
+
+        document.getElementById("currency2-header").addEventListener("click", function() {
+            sortTable(1); // Index of Currency 2 column
+        });
+
+        document.getElementById("ticker-header").addEventListener("click", function() {
+            sortTable(2); // Index of Ticker column
+        });
 
     </script>
 </body>

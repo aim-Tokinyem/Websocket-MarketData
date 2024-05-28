@@ -87,6 +87,12 @@
 
             // Display new data
             data.forEach(function(item) {
+                // Parse the date string and convert it to a Date object
+                const date = new Date(item[3]);
+                
+                // Convert the date to local time zone
+                const localDate = date.toLocaleString(); // This will format the date according to your local time zone
+
                 const currencyBox = document.createElement('div');
                 currencyBox.classList.add('currency-box');
                 currencyBox.innerHTML = `
@@ -94,15 +100,15 @@
                     <div class="currency-details">
                         <p>BID: ${item[5]}</p>
                         <p>ASK: ${item[7]}</p>
-                        <p>Date: ${item[3]}</p>
+                        <p>Date: ${localDate}</p> <!-- Display the local date -->
                     </div>
                 `;
                 dataContainer.appendChild(currencyBox);
             });
         }
 
-        // Fetch data every 5 seconds (adjust as needed)
-        setInterval(fetchData, 1000); // Polling interval: 5000 milliseconds (5 seconds)
+        // Fetch data every 1 seconds (adjust as needed)
+        setInterval(fetchData, 1000); // Polling interval: 1000 milliseconds (1 seconds)
 
         // Initial fetch when the page loads
         $(document).ready(function() {
