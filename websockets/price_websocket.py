@@ -4,6 +4,12 @@ import threading
 import time
 from loggers.config_logging import LoggerConfig
 import logging
+import sys
+from dotenv import load_dotenv
+import os
+import time
+from threading import Thread, Event
+from datastore.postgre import PostgreStorage
 
 logger_config = LoggerConfig('WebSocket')
 
@@ -72,19 +78,70 @@ class WebSocketClient:
         print("WebSocket connection closed")
         logging.info("WebSocket connection closed")
 
-    def restart(self):
-        self.stop()
-        self.start()
-
 class WebSocketManager:
-    def __init__(self, ws_address, ws_token, ticker, postgre_storage):
-        self.websocket_client = WebSocketClient(ws_address, ws_token, ticker, postgre_storage)
+    def __init__(self):
+        load_dotenv()
+        self.db_name = os.getenv('DB_NAME')
+        self.db_user = os.getenv('DB_USERNAME')
+        self.db_pass = os.getenv('DB_PASSWORD')
+        self.db_host = os.getenv('DB_HOST')
+        self.db_port = os.getenv('DB_PORT')
+        
+        self.ws_address = os.getenv('WEB_SOCKET_URL')
+        self.ws_token = os.getenv('WEB_SOCKET_KEY')
+        
+        self.postgre_storage = PostgreStorage(self.db_name, self.db_user, self.db_pass, self.db_host, self.db_port)
+        self.ws_manager = None
+        self.stop_event = Event()
 
-    def start(self):
-        self.websocket_client.start()
+    def get_all_ticker(self):
+        ticker = self.postgre_storage.select_ticker()
+        return [i[2] for i in ticker]
 
-    def stop(self):
-        self.websocket_client.stop()
+    def poll_for_ticker_updates(self, interval):
+        previous_ticker_list = self.get_all_ticker()
 
-    def restart(self):
-        self.websocket_client.restart()
+        while not self.stop_event.is_set():
+            time.sleep(interval)
+            current_ticker_list = self.get_all_ticker()
+            
+            if current_ticker_list != previous_ticker_list:
+                print("Tickers updated. Restarting websocket...")
+                self.ws_manager.stop()
+                self.ws_manager = WebSocketClient(self.ws_address, self.ws_token, current_ticker_list, self.postgre_storage)
+                self.ws_manager.start()
+                previous_ticker_list = current_ticker_list
+
+    def start_polling(self, interval=10):
+        self.polling_thread = Thread(target=self.poll_for_ticker_updates, args=(interval,))
+        self.polling_thread.start()
+
+    def start_websocket(self):
+        all_ticker = self.get_all_ticker()
+        self.ws_manager = WebSocketClient(self.ws_address, self.ws_token, all_ticker, self.postgre_storage)
+        self.ws_manager.start()
+
+    def stop_websocket(self):
+        if self.ws_manager:
+            self.ws_manager.stop()
+
+    def run(self):
+        self.start_polling()
+
+        while True:
+            command = input("Enter command (start/stop/restart/exit): ").strip().lower()
+
+            if command == "start":
+                self.start_websocket()
+            elif command == "stop":
+                self.stop_websocket()
+            elif command == "restart":
+                self.stop_websocket()
+                self.start_websocket()
+            elif command == "exit":
+                self.stop_websocket()
+                self.stop_event.set()
+                self.polling_thread.join()
+                break
+            else:
+                print("Invalid command. Please enter 'start', 'stop', 'restart', or 'exit'.")
