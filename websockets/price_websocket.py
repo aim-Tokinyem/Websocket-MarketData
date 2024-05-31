@@ -10,6 +10,7 @@ import os
 import time
 from threading import Thread, Event
 from datastore.postgre import PostgreStorage
+from datastore.db_config import db_config
 
 logger_config = LoggerConfig('WebSocket')
 
@@ -80,15 +81,14 @@ class WebSocketClient:
 
 class WebSocketManager:
     def __init__(self):
-        load_dotenv()
-        self.db_name = os.getenv('DB_NAME')
-        self.db_user = os.getenv('DB_USERNAME')
-        self.db_pass = os.getenv('DB_PASSWORD')
-        self.db_host = os.getenv('DB_HOST')
-        self.db_port = os.getenv('DB_PORT')
+        self.db_name = db_config.db_name
+        self.db_user = db_config.db_user
+        self.db_pass = db_config.db_pass
+        self.db_host = db_config.db_host
+        self.db_port = db_config.db_port
         
-        self.ws_address = os.getenv('WEB_SOCKET_URL')
-        self.ws_token = os.getenv('WEB_SOCKET_KEY')
+        self.ws_address = db_config.ws_address
+        self.ws_token = db_config.ws_token
         
         self.postgre_storage = PostgreStorage(self.db_name, self.db_user, self.db_pass, self.db_host, self.db_port)
         self.ws_manager = None

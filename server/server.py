@@ -5,14 +5,12 @@ from dotenv import load_dotenv
 import os
 from loggers.config_logging import LoggerConfig
 import logging
-
+from datastore.postgre import PostgreStorage
+from datastore.db_config import db_config
 
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
-
-from datastore.postgre import PostgreStorage
-
 
 logger_config = LoggerConfig('Server')
 
@@ -21,14 +19,13 @@ app.config['SECRET_KEY'] = 'super-secret'
 
 jwt = JWTManager(app)
 
-load_dotenv()
-db_name = os.getenv('DB_NAME')
-db_user = os.getenv('DB_USERNAME')
-db_pass = os.getenv('DB_PASSWORD')
-db_host = os.getenv('DB_HOST')
-db_port = os.getenv('DB_PORT')
-
-postgres = PostgreStorage(db_name,db_user,db_pass,db_host,db_port)
+postgres = PostgreStorage(
+    dbname=db_config.db_name,
+    user=db_config.db_user,
+    password=db_config.db_pass,
+    host=db_config.db_host,
+    port=db_config.db_port
+)
 
 @app.route('/price_data')
 def gets_data():
@@ -39,11 +36,11 @@ def gets_data():
     except Exception as e:
         logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
-    
+
 @app.route('/currency_data')
 def currency_data():
     try:
-        data = postgres.select_currency() 
+        data = postgres.select_currency()
         logging.info(f'{str(data)}')
         return jsonify({'data': data})
     except Exception as e:
@@ -58,14 +55,13 @@ def ticker_post():
         ticker = request.json.get('ticker')
 
         data = [currency1,currency2,ticker]
-        postgres.insert_ticker(data)  
+        postgres.insert_ticker(data)
 
         logging.info('Data inserted successfully')
         return jsonify({'message': 'Data inserted successfully'}), 200
     except Exception as e:
         logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
-
 
 
 @app.route('/ticker_data')
@@ -90,9 +86,8 @@ def ticker_delete():
         return jsonify({'message': f"Row with ID {ticker_name} deleted successfully"}), 200
     except Exception as e:
         logging.error(f'Error message : {str(e)}')
-        # Handle exceptions or errors here
         return jsonify({'error': str(e)}), 500
-    
+
 @app.route('/ticker_update', methods=['POST'])
 def ticker_update():
     try:
@@ -108,7 +103,7 @@ def ticker_update():
     except Exception as e:
         logging.error(f'Error message : {str(e)}')
         return jsonify({'error': str(e)}), 500
-    
+
 @app.route('/price_list')
 def display_data():
     try:
@@ -117,7 +112,7 @@ def display_data():
     except Exception as e:
         logging.error(f'Error message : {str(e)}')
         return str(e), 500
-    
+
 @app.route('/ticker_list')
 def ticker_list():
     try:
@@ -126,7 +121,7 @@ def ticker_list():
     except Exception as e:
         logging.error(f'Error message : {str(e)}')
         return str(e), 500
-    
+
 @app.route('/navbar.html')
 def navbar():
     try:
@@ -153,6 +148,3 @@ def home():
     except Exception as e:
         logging.error(f'Error message : {str(e)}')
         return str(e), 500
-
-# if __name__ == '__main__':
-#     app.run(debug=True)

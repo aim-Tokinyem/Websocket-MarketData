@@ -1,10 +1,11 @@
-import json
+""" This module is for database"""
 import logging
-import os
-from datetime import datetime, timedelta, timezone
-from typing import Iterable, List, Optional
 import psycopg2
 from psycopg2 import pool
+
+from loggers.config_logging import LoggerConfig
+
+logger_config = LoggerConfig('WebSocket')
 
 CREATE_CURRENCY_TABLE="""
     -- Table: public.currency
@@ -69,9 +70,10 @@ CREATE_PRICE_TABLE="""
 """
 
 class PostgreStorage():
+    """Class for handling PostgreSQL storage."""
     sid = "postgre"
 
-    def __init__(self,dbname,user,password,host,port):
+    def __init__(self, dbname, user, password, host, port):
         db_params = {
             "dbname" : dbname,
             "user":user,
@@ -79,7 +81,6 @@ class PostgreStorage():
             "host":host,
             "port":port,
         }
-        
         self.connection_pool = psycopg2.pool.SimpleConnectionPool(
             minconn=1,
             maxconn=10,
@@ -92,36 +93,41 @@ class PostgreStorage():
         self.create_tables_if_not_exist(CREATE_PRICE_TABLE, "PRICE")
 
     def get_connection(self):
+        """Get a connection from the connection pool."""
         conn_ = self.connection_pool.getconn()
         return conn_
-    
+
     def commit(self):
+        """Commit the current transaction."""
         self.conn.commit()
-        # self.last_commit = datetime.now()
-        # self.num_uncommitted_statements = 0
 
     def release_connection(self, connection):
+        """Release a connection back to the connection pool."""
         self.connection_pool.putconn(connection)
 
     def create_tables_if_not_exist(self,create_table_queries, name):
+        """Create tables incase if they do not exist."""
         connection = self.get_connection()
         try:
             c = connection.cursor()
             with c as cursor:
                 cursor.execute(create_table_queries)
             connection.commit()
-            print(f"{name} tables created successfully (if they didn't exist).")
+            logging.info("%s tables created successfully (if they didn't exist).", name)
+            # print(f"{name} tables created successfully (if they didn't exist).")
         except psycopg2.Error as e:
-            print("Error creating tables:", e)
+            logging.error("Error creating tables: %e ", e)
+            # print("Error creating tables:", e)
         finally:
             if connection:
                 self.release_connection(connection)
 
     def select_ticker(self):
+        """Select and return ticker data."""
         connection = self.get_connection()
         c = connection.cursor()
         try:
-            res = c.execute(
+            c.execute(
                 """
                 SELECT ct1.curr, ct2.curr, dt.ticker FROM ticker dt
                 JOIN currency ct1 ON dt.curr1 = ct1.ID
@@ -130,37 +136,44 @@ class PostgreStorage():
             data = c.fetchall()
             return data
         except Exception as e:
-                print(f"Error fetching data: {e}")
+            logging.error("Error selecting ticker data : %e ", e)
+            # print(f"Error fetching data: {e}")
         finally:
             if connection:
                 self.release_connection(connection)
 
 
     def select_currency(self):
+        """Select and return currency data."""
         connection = self.get_connection()
         c = connection.cursor()
         try:
-            res = c.execute(
+            c.execute(
                 """
                 SELECT * FROM currency;
                 """
             )
             data = c.fetchall()
             return data
-            
+
         except Exception as e:
-            print(f"Error select price tabel : {e}")
+            logging.error("Error selecting currency data : %e ", e)
+            # print("Error select currency data : %e", e)
         finally:
             if connection:
-                self.release_connection(connection)            
+                self.release_connection(connection)
 
     def select_price(self):
+        """Select and return price data."""
         connection = self.get_connection()
         c = connection.cursor()
         try:
-            res = c.execute(
+            c.execute(
                 """
-                SELECT ct1.curr AS currency1_name, ct2.curr AS currency2_name, tk.ticker, pr.datetime, pr.bid_size, pr.bid_price, pr.ask_size, pr.ask_price, pr.mid_price FROM price pr
+                SELECT ct1.curr AS currency1_name, ct2.curr AS 
+                    currency2_name, tk.ticker, pr.datetime, pr.bid_size, 
+                    pr.bid_price, pr.ask_size, pr.ask_price, pr.mid_price 
+                FROM price pr
                 JOIN ticker tk ON pr.ticker_code = tk.ID
                 JOIN currency ct1 ON tk.curr1 = ct1.ID
                 JOIN currency ct2 ON tk.curr2 = ct2.ID ORDER BY pr.id;
@@ -168,20 +181,25 @@ class PostgreStorage():
             )
             data = c.fetchall()
             return data
-            
         except Exception as e:
-            print(f"Error select price tabel : {e}")
+            logging.error("Error selecting price data : %e ", e)
+            # print(f"Error select price tabel : {e}")
         finally:
             if connection:
                 self.release_connection(connection)
 
     def insert_ticker(self, data):
+        """Insert a new ticker."""
         connection = self.get_connection()
         try:
             c = connection.cursor()
-            res = c.execute(
+            c.execute(
                 """
-                CREATE OR REPLACE FUNCTION insert_ticker(currency1_code VARCHAR, currency2_code VARCHAR, ticker_code VARCHAR) RETURNS VOID AS $$
+                CREATE OR REPLACE FUNCTION 
+                    insert_ticker(currency1_code VARCHAR, 
+                                currency2_code VARCHAR, 
+                                ticker_code VARCHAR) 
+                RETURNS VOID AS $$
                 BEGIN
                     INSERT INTO ticker (curr1, curr2, ticker)
                     VALUES ((SELECT ID FROM currency WHERE curr = currency1_code),
@@ -195,18 +213,21 @@ class PostgreStorage():
                 [data[0],data[1],data[2]]
             )
             connection.commit()
-            print("Ticker Inserted")
+            logging.info("Ticker Inserted")
+            # print("Ticker Inserted")
         except Exception as e:
-            print(f"Error inserting ticker: {e}")
+            logging.error("Error inserting ticker : %e ", e)
+            # print(f"Error inserting ticker: {e}")
         finally:
             if connection:
                 self.release_connection(connection)
 
     def update_ticker(self,data):
+        """Update an existing ticker."""
         connection = self.get_connection()
         try:
             c = connection.cursor()
-            res = c.execute(
+            c.execute(
                 """
                 UPDATE ticker
                 SET curr1 = (SELECT ID FROM currency WHERE curr = %s),
@@ -226,10 +247,11 @@ class PostgreStorage():
 
 
     def delete_ticker(self,data):
+        """Delete a ticker and price data."""
         connection = self.get_connection()
         try:
             c = connection.cursor()
-            res = c.execute(
+            c.execute(
                 """
                 BEGIN;
 
@@ -249,13 +271,13 @@ class PostgreStorage():
         finally:
             if connection:
                 self.release_connection(connection)
-    
+
     def insert_price(self, data):
+        """Insert a new price data."""
         connection = self.get_connection()
-        # print(data)
         try:
             c = connection.cursor()
-            res = c.execute(
+            c.execute(
                 """
                 CREATE OR REPLACE FUNCTION insert_price(tickercode_node VARCHAR, 
 										datetime_node TIMESTAMPTZ, 
@@ -269,10 +291,11 @@ class PostgreStorage():
                 BEGIN
                     mid_price_node := (bid_price_node + ask_price_node) / 2.0;									
                                                         
-                    INSERT INTO price (ticker_code, datetime, bid_size, bid_price, ask_size, ask_price, mid_price)
+                    INSERT INTO price (ticker_code, datetime, bid_size, 
+                                    bid_price, ask_size, ask_price, mid_price)
                     VALUES ((SELECT ID FROM ticker WHERE ticker = tickercode_node),
-                            datetime_node, bid_size_node, bid_price_node, ask_size_node, ask_price_node,
-                            mid_price_node)
+                            datetime_node, bid_size_node, bid_price_node, 
+                            ask_size_node, ask_price_node, mid_price_node)
                     ON CONFLICT (ticker_code) DO UPDATE
                     SET datetime = EXCLUDED.datetime,
                         bid_size = EXCLUDED.bid_size,
@@ -294,4 +317,4 @@ class PostgreStorage():
         finally:
             if connection:
                 self.release_connection(connection)
-
+                
