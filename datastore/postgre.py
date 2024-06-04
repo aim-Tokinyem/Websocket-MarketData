@@ -1,13 +1,19 @@
-""" This module is for database"""
+"""
+This module defines the PostgreStorage class which handles PostgreSQL
+storage operations, including table creation, data insertion, updates,
+deletions, and selection queries.
+"""
+
 import logging
 import psycopg2
-from psycopg2 import pool
+from psycopg2 import pool # pylint: disable=unused-import
+from datastore.db_config import DBConfig
 
-from loggers.config_logging import LoggerConfig
+# from loggers.loggers_config import LoggerConfig
 
-logger_config = LoggerConfig('WebSocket')
+# # logger_config = LoggerConfig('Postgre')
 
-CREATE_CURRENCY_TABLE="""
+CREATE_CURRENCY_TABLE = """
     -- Table: public.currency
     CREATE TABLE IF NOT EXISTS public.currency (
         id SERIAL PRIMARY KEY,
@@ -45,7 +51,7 @@ CREATE_CURRENCY_TABLE="""
     ON CONFLICT (curr) DO NOTHING;
 """
 
-CREATE_TICKER_TABLE="""
+CREATE_TICKER_TABLE = """
     -- Table: public.ticker
     CREATE TABLE IF NOT EXISTS public.ticker (
         id SERIAL PRIMARY KEY,
@@ -55,7 +61,7 @@ CREATE_TICKER_TABLE="""
     );
 """
 
-CREATE_PRICE_TABLE="""
+CREATE_PRICE_TABLE = """
     -- Table: public.price
     CREATE TABLE IF NOT EXISTS public.price (
         id SERIAL PRIMARY KEY,
@@ -69,17 +75,17 @@ CREATE_PRICE_TABLE="""
     );
 """
 
-class PostgreStorage():
+class PostgreStorage:
     """Class for handling PostgreSQL storage."""
     sid = "postgre"
 
-    def __init__(self, dbname, user, password, host, port):
+    def __init__(self, db_config: DBConfig):
         db_params = {
-            "dbname" : dbname,
-            "user":user,
-            "password":password,
-            "host":host,
-            "port":port,
+            'dbname': db_config.db_name,
+            'user': db_config.db_user,
+            'password': db_config.db_pass,
+            'host': db_config.db_host,
+            'port': db_config.db_port
         }
         self.connection_pool = psycopg2.pool.SimpleConnectionPool(
             minconn=1,
@@ -94,8 +100,7 @@ class PostgreStorage():
 
     def get_connection(self):
         """Get a connection from the connection pool."""
-        conn_ = self.connection_pool.getconn()
-        return conn_
+        return self.connection_pool.getconn()
 
     def commit(self):
         """Commit the current transaction."""
@@ -105,8 +110,8 @@ class PostgreStorage():
         """Release a connection back to the connection pool."""
         self.connection_pool.putconn(connection)
 
-    def create_tables_if_not_exist(self,create_table_queries, name):
-        """Create tables incase if they do not exist."""
+    def create_tables_if_not_exist(self, create_table_queries, name):
+        """Create tables in case they do not exist."""
         connection = self.get_connection()
         try:
             c = connection.cursor()
@@ -114,10 +119,8 @@ class PostgreStorage():
                 cursor.execute(create_table_queries)
             connection.commit()
             logging.info("%s tables created successfully (if they didn't exist).", name)
-            # print(f"{name} tables created successfully (if they didn't exist).")
         except psycopg2.Error as e:
-            logging.error("Error creating tables: %e ", e)
-            # print("Error creating tables:", e)
+            logging.error("Error creating tables: %s", e)
         finally:
             if connection:
                 self.release_connection(connection)
@@ -132,16 +135,17 @@ class PostgreStorage():
                 SELECT ct1.curr, ct2.curr, dt.ticker FROM ticker dt
                 JOIN currency ct1 ON dt.curr1 = ct1.ID
                 JOIN currency ct2 ON dt.curr2 = ct2.ID ORDER BY dt.ID;
-                """)
+                """
+            )
             data = c.fetchall()
             return data
-        except Exception as e:
-            logging.error("Error selecting ticker data : %e ", e)
-            # print(f"Error fetching data: {e}")
+
+        except psycopg2.Error as e:
+            logging.error("Error selecting ticker data: %s", e)
+            return None
         finally:
             if connection:
                 self.release_connection(connection)
-
 
     def select_currency(self):
         """Select and return currency data."""
@@ -156,9 +160,9 @@ class PostgreStorage():
             data = c.fetchall()
             return data
 
-        except Exception as e:
-            logging.error("Error selecting currency data : %e ", e)
-            # print("Error select currency data : %e", e)
+        except psycopg2.Error as e:
+            logging.error("Error selecting currency data: %s", e)
+            return None
         finally:
             if connection:
                 self.release_connection(connection)
@@ -181,9 +185,9 @@ class PostgreStorage():
             )
             data = c.fetchall()
             return data
-        except Exception as e:
-            logging.error("Error selecting price data : %e ", e)
-            # print(f"Error select price tabel : {e}")
+        except psycopg2.Error as e:
+            logging.error("Error selecting price data: %s", e)
+            return None
         finally:
             if connection:
                 self.release_connection(connection)
@@ -210,19 +214,17 @@ class PostgreStorage():
 
                 SELECT insert_ticker(%s, %s, %s);
                 """,
-                [data[0],data[1],data[2]]
+                [data[0], data[1], data[2]]
             )
             connection.commit()
             logging.info("Ticker Inserted")
-            # print("Ticker Inserted")
-        except Exception as e:
-            logging.error("Error inserting ticker : %e ", e)
-            # print(f"Error inserting ticker: {e}")
+        except psycopg2.Error as e:
+            logging.error("Error inserting ticker: %s", e)
         finally:
             if connection:
                 self.release_connection(connection)
 
-    def update_ticker(self,data):
+    def update_ticker(self, data):
         """Update an existing ticker."""
         connection = self.get_connection()
         try:
@@ -235,18 +237,17 @@ class PostgreStorage():
                     ticker = %s
                 WHERE ticker = %s;
                 """,
-                [data[0],data[1],data[2],data[3]]
+                [data[0], data[1], data[2], data[3]]
             )
             connection.commit()
-            print("Ticker Updated")
-        except Exception as e:
-            print(f"Error updating ticker: {e}")
+            logging.info("Ticker Updated")
+        except psycopg2.Error as e:
+            logging.error("Error updating ticker: %s", e)
         finally:
             if connection:
                 self.release_connection(connection)
 
-
-    def delete_ticker(self,data):
+    def delete_ticker(self, data):
         """Delete a ticker and price data."""
         connection = self.get_connection()
         try:
@@ -264,10 +265,9 @@ class PostgreStorage():
                 [data, data]
             )
             connection.commit()
-            print(data)
-            print("Ticker Deleted")
-        except Exception as e:
-            print(f"Error deleting ticker: {e}")
+            logging.info("Ticker Deleted")
+        except psycopg2.Error as e:
+            logging.error("Error deleting ticker: %s", e)
         finally:
             if connection:
                 self.release_connection(connection)
@@ -308,13 +308,12 @@ class PostgreStorage():
 
                 SELECT insert_price(%s, %s, %s, %s, %s, %s);
                 """,
-                [data[1],data[2],data[3],data[4],data[6],data[7]]
+                [data[1], data[2], data[3], data[4], data[6], data[7]]
             )
             connection.commit()
-            print("Data Inserted")
-        except Exception as e:
-            print(f"Error inserting data: {e}")
+            logging.info("Data Inserted")
+        except psycopg2.Error as e:
+            logging.error("Error inserting data: %s", e)
         finally:
             if connection:
                 self.release_connection(connection)
-                
