@@ -71,14 +71,14 @@ Detailed instructions and examples for using the Websocket-MarketData Project. A
 3. The data will be saved in the table. Websockets will read the table and request data based on the entries.
 4. You can update or delete entries in the table as needed.
 
-![Ticker List Page Screenshot](images/Ticker_List.png)
+![Ticker List Page Screenshot](images/Ticker_List.PNG)
 
 #### Price List
 1. Open your browser and navigate to http://localhost:5000/price_list.
 2. The dashboard will display FX values (Bid, Ask, Date) based on the Ticker List table.
 3. You can filter the values by selecting Currency 1 or Currency 2.
 
-![Price List Page Screenshot](images/Price_List.png)
+![Price List Page Screenshot](images/Price_List.PNG)
 
 ## Features
 
