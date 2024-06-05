@@ -3,8 +3,6 @@
 <head>
     <title>Real-time Data Display - Dark Mode</title>
     <style>
-        /* Style for the input elements */
-
         body {
             background-color: #1a1a1a;
             color: #ffffff;
@@ -12,7 +10,7 @@
             margin: 0;
             padding: 0;
         }
-        /* Dark mode styles for the box or square */
+
         .currency-box {
             border: 1px solid #555;
             padding: 20px;
@@ -98,10 +96,10 @@
 
         function fetchData() {
             $.ajax({
-                url: '/price_data', // Endpoint to fetch data from Flask
+                url: '/price_data',
                 type: 'GET',
                 success: function(response) {
-                    console.log('Received data:', response.data); // Log received data
+                    console.log('Received data:', response.data); 
                     updateUI(response.data);
                 },
                 error: function(error) {

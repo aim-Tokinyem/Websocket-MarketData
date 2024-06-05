@@ -127,9 +127,7 @@
                 document.getElementById('navbar').innerHTML = data;
             })
             .catch(error => console.error('Error fetching navbar:', error));
-    </script>
 
-    <script>
         $(document).ready(function() {
             $.ajax({
                 url: '/currency_data',
@@ -196,10 +194,6 @@
             });
         }
 
-        // function editRow(ticker) {
-        //     console.log('Edit button clicked for ticker:', ticker);
-        // }
-
         function deleteRow(ticker) {
             console.log('Delete button clicked for ticker:', ticker);
             var data = {
@@ -252,10 +246,6 @@
                 }
             });
         }
-    </script>
-
-    <script>
-
 
         function fetchAndPopulateDropdown(elementId, selectedCurrency) {
             var dropdown = $('#' + elementId);
@@ -278,7 +268,6 @@
                 }
             });
         }
-
 
         function editRow(currency1, currency2, ticker) {
             console.log('Edit button clicked for ticker:', ticker);
@@ -304,18 +293,18 @@
                 'currency1': editedCurrency1,
                 'currency2': editedCurrency2,
                 'ticker': editedTicker,
-                'existing_ticker': currentEditTicker // Use the stored current ticker value
+                'existing_ticker': currentEditTicker 
             };
             console.log('Data being sent to backend:', data);
             $.ajax({
                 url: '/ticker_update',
                 type: 'POST',
-                contentType: 'application/json', // Set content type to JSON
-                data: JSON.stringify(data), // Send data as JSON
+                contentType: 'application/json', 
+                data: JSON.stringify(data), 
                 success: function(response) {
                     console.log('Data updated successfully:', response.message);
                     $('#edit-modal').hide();
-                    fetchData(); // Refresh data after successful update
+                    fetchData(); 
                 },
                 error: function(error) {
                     console.error('Error updating data:', error.responseJSON.error);
@@ -332,7 +321,7 @@
             
             // Initialize sorting order for this column if not already defined
             if (!sortingOrders[columnIndex]) {
-                sortingOrders[columnIndex] = 'asc'; // Default to ascending order
+                sortingOrders[columnIndex] = 'asc'; 
             }
 
             while (switching) {
