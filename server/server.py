@@ -83,8 +83,7 @@ def ticker_data():
 def ticker_delete():
     """Delete ticker data."""
     try:
-        # Get the ID of the row to delete from the request data
-        ticker_name = request.json.get('data')  # Assuming the ID is passed in the JSON payload
+        ticker_name = request.json.get('data')  
         print(ticker_name)
         postgres.delete_ticker(ticker_name)
         logging.info("Row with ID %s deleted successfully", ticker_name)
@@ -97,7 +96,6 @@ def ticker_delete():
 def ticker_update():
     """Update ticker data."""
     try:
-        # Get the ID of the row to delete from the request data
         cur1 = request.json.get('currency1')
         cur2 = request.json.get('currency2')
         ticker = request.json.get('ticker')
