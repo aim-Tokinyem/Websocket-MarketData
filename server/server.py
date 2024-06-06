@@ -32,7 +32,7 @@ def gets_data():
     """Retrieve price data."""
     try:
         data = postgres.select_price()
-        logging.info('{str(data)}')
+        # logging.info(str(data))
         return jsonify({'data': data})
     except Exception as e:
         logging.error('Error gets data : %s', str(e))

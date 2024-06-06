@@ -6,6 +6,7 @@ deletions, and selection queries.
 
 import logging
 import psycopg2
+from datetime import datetime
 from psycopg2 import pool # pylint: disable=unused-import
 from datastore.db_config import DBConfig
 
@@ -218,6 +219,7 @@ class PostgreStorage:
             )
             connection.commit()
             logging.info("Ticker Inserted")
+            self.insert_price(['Q', data[2], datetime.now(), 0.0, 0.0, 0.0, 0.0, 0.0])
         except psycopg2.Error as e:
             logging.error("Error inserting ticker: %s", e)
         finally:
