@@ -73,12 +73,13 @@
             z-index: 1;
         }
         .styled-table thead {
-            background-color: #df9100;
+            background-color: #313131;
             color: #ffffff;
             text-align: left;
             position: sticky; /* Keeps the header fixed when scrolling */
             top: 0;
             z-index: 1;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.507); 
         }
 
         .styled-table th,
@@ -104,6 +105,11 @@
         .styled-table tbody tr {
             border-bottom: 1px solid #2e2e2e;
         }
+
+        /* .styled-table tbody th {
+            border-bottom: 0 0 30px rgb(0, 0, 0); 
+            box-shadow: 0 0 30px rgb(0, 0, 0); 
+        } */
 
         .styled-table tbody tr:nth-of-type(even) {
             background-color: #2e2e2e;
@@ -133,7 +139,7 @@
             background-color: #e68a00; /* Darker shade on hover */
         }
 
-        #edit-modal, #delete-modal {
+        #add-modal,#edit-modal, #delete-modal {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -161,6 +167,7 @@
             flex: 1; /* Allows the select to take up the remaining space */
         }
 
+        #add-button, #cancel-button3,
         #update-button, #delete-button,
         #cancel-button, #cancel-button2 {
             width: 100%; /* Set a consistent width for buttons */
@@ -176,6 +183,7 @@
             text-align: center;
         }
 
+        #add-button:hover, #cancel-button3:hover,
         #update-button:hover, #delete-button:hover,
         #cancel-button:hover, #cancel-button2:hover {
             background-color: #e68a00; /* Darker shade on hover */
@@ -195,6 +203,28 @@
             display: none; /* Hide by default */
             z-index: 999; /* Ensure it’s below the modal */
         }
+        .container {
+            text-align: right;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        .new-ticker-button {
+            background-color: #e68a00;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: box-shadow 0.4s ease, background-color 0.4s ease;
+            
+        }
+
+        .new-ticker-button:hover {
+            background-color: #e68a00;
+            box-shadow: 0 0 10px #e68a00;
+        }
+
 
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -203,6 +233,9 @@
     
     <div id="navbar"></div>
     <h1>Ticker List</h1>
+    <div class="container">
+        <button class="new-ticker-button" onclick="addRow()">+ New Ticker</button>
+    </div>
         <table class="styled-table">
             <thead>
                 <tr>
@@ -212,12 +245,12 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tr>
+            <!-- <tr>
                 <td><select id="currency1"></select></td>
                 <td><select id="currency2"></select></td>
                 <td><input type="text" id="ticker" placeholder="Enter ticker here"></td>
                 <td><button onclick="submitData()">Submit</button></td>
-            </tr>
+            </tr> -->
             <tbody id="data-table">
                 <!-- Data will be dynamically updated here -->
             </tbody>
@@ -225,20 +258,41 @@
     
     <!-- Edit Modal -->
     <div id="overlay"></div>
+
+
+    <div id="add-modal">
+        <h2>Add New Ticker Data</h2>
+        <div class="modal-field">
+            <label for="add-currency1">Currency 1:</label>
+            <select id="currency1"></select>
+        </div>
+        <div class="modal-field">
+            <label for="add-currency2">Currency 2:</label>
+            <select id="currency2"></select>
+        </div>
+        <div class="modal-field">
+            <label for="add-ticker">Ticker:</label>
+            <input type="text" id="ticker" placeholder="Enter ticker here">
+        </div>
+    <br>
+        <button onclick="submitData()" id="add-button">Save Ticker</button>
+        <button id="cancel-button3">Cancel</button>
+    </div>
+
     <div id="edit-modal">
-    <h2>Edit Ticker Data</h2>
-    <div class="modal-field">
-        <label for="edited-currency1">Currency 1:</label>
-        <select id="edited-currency1"></select>
-    </div>
-    <div class="modal-field">
-        <label for="edited-currency2">Currency 2:</label>
-        <select id="edited-currency2"></select>
-    </div>
-    <div class="modal-field">
-        <label for="edited-ticker">Ticker:</label>
-        <input type="text" id="edited-ticker" placeholder="Enter edited ticker">
-    </div>
+        <h2>Edit Ticker Data</h2>
+        <div class="modal-field">
+            <label for="edited-currency1">Currency 1:</label>
+            <select id="edited-currency1"></select>
+        </div>
+        <div class="modal-field">
+            <label for="edited-currency2">Currency 2:</label>
+            <select id="edited-currency2"></select>
+        </div>
+        <div class="modal-field">
+            <label for="edited-ticker">Ticker:</label>
+            <input type="text" id="edited-ticker" placeholder="Enter edited ticker">
+        </div>
     <br>
         <button id="update-button">Update</button>
         <button id="cancel-button">Cancel</button>
@@ -317,6 +371,7 @@
                 `);
             });
         }
+        
 
         function editRow(currency1, currency2, ticker) {
             console.log('Edit button clicked for ticker:', ticker);
@@ -344,7 +399,7 @@
 
         function deleteRow(currency1,currency2,ticker) {
             console.log('Delete button clicked for ticker:', ticker);
-            $('#delete-modal h4').text(`Are you sure want to delete this ${currency1}/${currency2} ticker?`);
+            $('#delete-modal h4').text(`Are you sure want to delete this "${currency1}/${currency2}" ticker?`);
             $('#overlay').fadeIn(); // Show the overlay
             $('#delete-modal').fadeIn(); // Show the modal
             $('#delete-button').off('click').on('click', function() {
@@ -362,6 +417,19 @@
             fetchData();
         });
 
+        function addRow(){
+            $('#overlay').fadeIn(); // Show the overlay
+            $('#add-modal').fadeIn(); // Show the modal
+            $('#add-button').off('click').on('click', function() {
+                submitData(ticker);
+                $('#add-modal').fadeOut();
+                $('#overlay').fadeOut();
+            });
+            $('#cancel-button3').off('click').on('click', function() {
+                $('#add-modal').fadeOut(); // Hide the modal
+                $('#overlay').fadeOut(); // Hide the overlay
+            });
+        }
 
         function submitData() {
             var currency1 = document.getElementById('currency1').value;
