@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Real-time Data Display - Dark Mode</title>
+    <title>Real-time Data Display</title>
     <style>
         body {
             background-color: #1a1a1a;
@@ -83,14 +83,6 @@
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
         }
         .styled-table thead {
-            background-color: #df9100;
-            color: #ffffff;
-            text-align: left;
-            position: sticky; /* Keeps the header fixed when scrolling */
-            top: 0;
-            z-index: 1;
-        }
-        .styled-table thead {
             background-color: #313131;
             color: #ffffff;
             text-align: left;
@@ -112,14 +104,13 @@
             max-height: calc(93vh - 200px);
         }
 
-
         .styled-table thead,
         .styled-table tbody tr {
             display: table;
             width: 100%;
             table-layout: fixed;
         }
-
+        
         .styled-table tbody tr {
             border-bottom: 1px solid #2e2e2e;
         }
@@ -127,13 +118,13 @@
         .styled-table tbody tr:nth-of-type(even) {
             background-color: #2e2e2e;
         }
-        .styled-table tbody tr.active-row {
-            font-weight: bold;
-            color: #df9100;
+
+        .updated-row {
+            background-color: #e68a00 !important; /* Use !important to ensure the color is applied */
         }
-        
+
         /* Styling the scrollbar for WebKit browsers (e.g., Chrome, Safari) */
-        .styled-table tbody::-webkit-scrollbar, select::-webkit-scrollbar{
+        .styled-table tbody::-webkit-scrollbar, select::-webkit-scrollbar {
             background-color: #202020;
             width: 5px; /* Width of the scrollbar */
         }
@@ -151,9 +142,7 @@
         select::-webkit-scrollbar-thumb:hover {
             background-color: #e68a00; /* Darker shade on hover */
         }
-        /* .updated-row {
-            background-color: #e68a00;
-        } */
+    </style>
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -183,9 +172,7 @@
         </table>
         
     <script>
-        let previousData = [];
-
-        // Fetch the navbar.html content using Fetch API
+                // Fetch the navbar.html content using Fetch API
         fetch('navbar.html')
             .then(response => response.text())
             .then(data => {
@@ -216,6 +203,9 @@
             $('#currency2-filter').on('input', fetchData);
         });
 
+        let previousData = [];
+        let isFirstLoad = true; // Flag to track if it's the first load
+
         function updateUI(newData) {
             const filterCurrency1 = $('#currency1-filter').val().toLowerCase();
             const filterCurrency2 = $('#currency2-filter').val().toLowerCase();
@@ -227,8 +217,9 @@
                 newDataMap.set(key, item);
             });
 
-            $('#data-table').empty();
+            $('#data-table').empty(); // Clear existing rows
 
+            // Add or update rows
             newData.forEach(function(item) {
                 const currency1 = item[0].toLowerCase();
                 const currency2 = item[1].toLowerCase();
@@ -238,17 +229,10 @@
 
                     const date = new Date(item[3]); // Assuming the date is at index 3
                     const localDate = date.toLocaleString();
-
                     const key = `${item[0]}-${item[1]}`;
-                    const isUpdated = !previousData.some(prevItem => {
-                        const prevKey = `${prevItem[0]}-${prevItem[1]}`;
-                        return prevKey === key && JSON.stringify(prevItem) === JSON.stringify(item);
-                    });
-
-                    const rowClass = isUpdated ? 'updated-row' : '';
 
                     $('#data-table').append(`
-                        <tr class="${rowClass}">
+                        <tr data-key="${key}">
                             <td>${item[0]}</td> <!-- Currency 1 -->
                             <td>${item[1]}</td> <!-- Currency 2 -->
                             <td>${item[5]}</td> <!-- BID -->
@@ -259,17 +243,39 @@
                 }
             });
 
+            // Apply the highlight only if it's not the first load
+            if (!isFirstLoad) {
+                // Highlight rows that have changed
+                $('#data-table tr').each(function() {
+                    const $row = $(this);
+                    const key = $row.data('key');
+                    const isUpdated = !previousData.some(prevItem => {
+                        const prevKey = `${prevItem[0]}-${prevItem[1]}`;
+                        return prevKey === key && JSON.stringify(prevItem) === JSON.stringify(newDataMap.get(key));
+                    });
+                    if (isUpdated) {
+                        $row.addClass('updated-row');
+                    }
+                });
+
+                // Remove the highlight after 1 second
+                setTimeout(() => {
+                    $('.updated-row').removeClass('updated-row');
+                }, 1000);
+            }
+
             // Store new data for next comparison
             previousData = newData;
 
-            // Remove the highlight after 1 second
-            // setTimeout(() => {
-            //     $('.updated-row').removeClass('updated-row');
-            // }, 1000);
+            // Set the flag to false after the first update
+            if (isFirstLoad) {
+                isFirstLoad = false;
+            }
         }
 
         // Fetch data every 3 seconds
         setInterval(fetchData, 3000);
+
 
     </script>
 </body>
