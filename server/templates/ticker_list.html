@@ -263,6 +263,9 @@
     <h1>Ticker List</h1>
     <div id="notification" class="notification"></div>
     <div class="container">
+        <input type="text" id="filter-col-0" placeholder="Filter by Currency 1">
+        <input type="text" id="filter-col-1" placeholder="Filter by Currency 2">
+
         <button class="new-ticker-button" onclick="addRow()">+ New Ticker</button>
     </div>
         <table class="styled-table">
@@ -386,7 +389,20 @@
         function updateUI(data) {
             $('#data-table').empty();
 
-            data.forEach(function(item) {
+            // Get filter values
+            const filterCol0 = $('#filter-col-0').val().toLowerCase();
+            const filterCol1 = $('#filter-col-1').val().toLowerCase();
+
+            // Filter data based on input values
+            const filteredData = data.filter(function(item) {
+                const col0 = item[0].toString().toLowerCase();
+                const col1 = item[1].toString().toLowerCase();
+
+                return col0.includes(filterCol0) && col1.includes(filterCol1);
+            });
+
+            // Append filtered data to the table
+            filteredData.forEach(function(item) {
                 $('#data-table').append(`
                     <tr>
                         <td>${item[0]}</td>
@@ -400,6 +416,14 @@
                 `);
             });
         }
+
+        $(document).ready(function() {
+            fetchData();
+
+            // Add event listeners to filter inputs to update the UI when filter values change
+            $('#filter-col-0').on('input', fetchData);
+            $('#filter-col-1').on('input', fetchData);
+        });
         
 
         function editRow(currency1, currency2, ticker) {
