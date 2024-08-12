@@ -142,6 +142,20 @@
         select::-webkit-scrollbar-thumb:hover {
             background-color: #e68a00; /* Darker shade on hover */
         }
+        /* Main container to account for navbar width */
+        .main-container {
+            margin-left: 250px; /* Width of navbar (200px) + some space */
+            padding: 20px;
+            flex-grow: 1; /* Ensures the content takes up the remaining space */
+        }
+        .container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 10px;
+            margin-right: 10px;
+            gap: 10px; /* Space between input fields and buttons */
+        }
     </style>
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -149,6 +163,8 @@
 <body>
     <div id="navbar"></div>
     <!-- <div class="container"> -->
+        
+        <div class="main-container">
         <h1>Live Exchange Rates</h1>
         <div class="container">
             <input type="text" id="currency1-filter" placeholder="Enter currency 1">
@@ -161,7 +177,7 @@
                     <th id="currency1-header">Currency 1</th>
                     <th id="currency2-header">Currency 2</th>
                     <th id="BID">BID</th>
-                    <th id="BID">ASK</th>
+                    <th id="ASK">ASK</th>
                     <th id="Date">Date</th>
                 </tr>
             </thead>
@@ -170,7 +186,7 @@
                 <!-- Data will be dynamically updated here -->
             </tbody>
         </table>
-        
+    </div>
     <script>
                 // Fetch the navbar.html content using Fetch API
         fetch('navbar.html')

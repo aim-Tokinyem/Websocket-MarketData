@@ -251,43 +251,61 @@
         .notification.warning {
             background-color: #ff9800; /* Orange for warning */
         }
-
-
+        .main-container {
+            margin-left: 250px;
+            padding: 20px;
+            flex-grow: 1; /* Ensures the content takes up the remaining space */
+        }
+        .container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 10px;
+            gap: 10px;
+        }
+        .layout {
+            display: flex;
+            height: 100%;
+            overflow: hidden; /* Prevents content from spilling out */
+        }
 
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    
-    <div id="navbar"></div>
-    <h1>Ticker List</h1>
-    <div id="notification" class="notification"></div>
-    <div class="container">
-        <input type="text" id="filter-col-0" placeholder="Filter by Currency 1">
-        <input type="text" id="filter-col-1" placeholder="Filter by Currency 2">
+        <div class="main-container">
+        <div id="navbar"></div>
+        <h1>Ticker List</h1>
+        <div id="notification" class="notification"></div>
+        
+        <div class="container">
+            <input type="text" id="filter-col-0" placeholder="Filter by Currency 1">
+            <input type="text" id="filter-col-1" placeholder="Filter by Currency 2">
 
-        <button class="new-ticker-button" onclick="addRow()">+ New Ticker</button>
-    </div>
-        <table class="styled-table">
-            <thead>
-                <tr>
-                    <th id="currency1-header">Currency 1</th>
-                    <th id="currency2-header">Currency 2</th>
-                    <th id="ticker-header">Ticker</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <!-- <tr>
-                <td><select id="currency1"></select></td>
-                <td><select id="currency2"></select></td>
-                <td><input type="text" id="ticker" placeholder="Enter ticker here"></td>
-                <td><button onclick="submitData()">Submit</button></td>
-            </tr> -->
-            <tbody id="data-table">
-                <!-- Data will be dynamically updated here -->
-            </tbody>
-        </table>
-    
+            <button class="new-ticker-button" onclick="addRow()">+ New Ticker</button>
+        </div>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th id="currency1-header">Currency 1</th>
+                        <th id="currency2-header">Currency 2</th>
+                        <th id="ticker-header">Ticker</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <!-- <tr>
+                    <td><select id="currency1"></select></td>
+                    <td><select id="currency2"></select></td>
+                    <td><input type="text" id="ticker" placeholder="Enter ticker here"></td>
+                    <td><button onclick="submitData()">Submit</button></td>
+                </tr> -->
+                <tbody id="data-table">
+                    <!-- Data will be dynamically updated here -->
+                </tbody>
+            </table>
+        </div>
+        </div>
+</div>
     <!-- Edit Modal -->
     <div id="overlay"></div>
 
