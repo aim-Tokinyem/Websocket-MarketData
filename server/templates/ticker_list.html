@@ -225,6 +225,34 @@
             box-shadow: 0 0 10px #e68a00;
         }
 
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none; /* Initially hidden */
+            z-index: 10000;
+            opacity: 0.9; /* Slightly transparent */
+        }
+
+        .notification.success {
+            background-color: #4CAF50; /* Green for success */
+        }
+
+        .notification.error {
+            background-color: #f44336; /* Red for error */
+        }
+
+        .notification.warning {
+            background-color: #ff9800; /* Orange for warning */
+        }
+
+
 
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -233,6 +261,7 @@
     
     <div id="navbar"></div>
     <h1>Ticker List</h1>
+    <div id="notification" class="notification"></div>
     <div class="container">
         <button class="new-ticker-button" onclick="addRow()">+ New Ticker</button>
     </div>
@@ -450,11 +479,14 @@
                 contentType: 'application/json', // Set content type to JSON
                 data: JSON.stringify(data), // Send data as JSON
                 success: function(response) {
-                    console.log('Data submitted successfully:', response.message);
+                    console.log('Data successfully added!', response.message);
+                    showNotification('Data successfully added!', 'success');
+
                     fetchData(); // Refresh data after successful submission
                 },
                 error: function(error) {
-                    console.error('Error submitting data:', error.responseJSON.error);
+                    console.error('Error adding data:', error.responseJSON.error);
+                    showNotification('Error adding data.', 'error');
                 }
             });
         }
@@ -491,11 +523,13 @@
                 contentType: 'application/json', // Set content type to JSON
                 data: JSON.stringify(data), // Send data as JSON
                 success: function(response) {
-                    console.log('Row deleted successfully');
+                    console.log('Data successfully deleted!');
+                    showNotification('Data successfully deleted!', 'success');
+
                     fetchData(); // Refresh data after deletion
                 },
                 error: function(error) {
-                    console.error('Error deleting row:', error);
+                    showNotification('Error deleting data.', 'error');
                 }
             });
         }
@@ -521,10 +555,12 @@
                 success: function(response) {
                     console.log('Data updated successfully:', response.message);
                     $('#edit-modal').hide();
+                    showNotification('Data successfully updated!', 'success');
                     fetchData(); 
                 },
                 error: function(error) {
                     console.error('Error updating data:', error.responseJSON.error);
+                    showNotification('Error updating data.', 'error');
                 }
             });
         }
@@ -585,6 +621,23 @@
             sortTable(2); // Index of Ticker column
         });
         
+        function showNotification(message, type = 'success') {
+            var notification = document.getElementById('notification');
+            notification.textContent = message;
+            
+            // Add appropriate class based on the notification type
+            notification.className = 'notification ' + type;
+            
+            // Show the notification
+            $('#notification').fadeIn();
+
+            // Hide the notification after 3 seconds
+            setTimeout(function() {
+                $('#notification').fadeOut();
+                // notification.style.display = 'none';
+            }, 3000);
+        }
+
         </script>
 </body>
 </html>
