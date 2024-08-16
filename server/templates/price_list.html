@@ -161,10 +161,13 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+    
     <div id="navbar"></div>
+    
     <!-- <div class="container"> -->
         
         <div class="main-container">
+            <!-- <div id="footer"></div> -->
         <h1>Live Exchange Rates</h1>
         <div class="container">
             <input type="text" id="currency1-filter" placeholder="Enter currency 1">
@@ -186,7 +189,9 @@
                 <!-- Data will be dynamically updated here -->
             </tbody>
         </table>
+        
     </div>
+    
     <script>
                 // Fetch the navbar.html content using Fetch API
         fetch('navbar.html')
@@ -196,6 +201,14 @@
                 document.getElementById('navbar').innerHTML = data;
             })
             .catch(error => console.error('Error fetching navbar:', error));
+
+        
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching footer :', error));
 
         function fetchData() {
             $.ajax({

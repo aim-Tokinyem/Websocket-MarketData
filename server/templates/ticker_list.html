@@ -273,8 +273,10 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+    <div id="navbar"></div>
         <div class="main-container">
-        <div id="navbar"></div>
+            <!-- <div id="footer"></div> -->
+        
         <h1>Ticker List</h1>
         <div id="notification" class="notification"></div>
         
@@ -365,6 +367,13 @@
                 document.getElementById('navbar').innerHTML = data;
             })
             .catch(error => console.error('Error fetching navbar:', error));
+
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer').innerHTML = data;
+            })
+            .catch(error => console.error('Error fetching footer :', error));
 
         $(document).ready(function() {
             $.ajax({

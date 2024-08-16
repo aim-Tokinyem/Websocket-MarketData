@@ -137,6 +137,16 @@ def navbar():
     except Exception as e:
         logging.error('Error displaying navbar: %s', str(e))
         return str(e), 500
+    
+@app.route('/footer.html')
+def footer():
+    """Display footer."""
+    try:
+        logging.info('footer.html')
+        return render_template('footer.html')
+    except Exception as e:
+        logging.error('Error displaying footer : %s', str(e))
+        return str(e), 500
 
 @app.route('/styles.css')
 def css():
