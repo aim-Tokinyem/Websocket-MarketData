@@ -274,6 +274,31 @@ class PostgreStorage:
             if connection:
                 self.release_connection(connection)
 
+    def ticker_exists(self, currency1, currency2, ticker):
+        """Check if a ticker exists in the database."""
+        connection = self.get_connection()
+        c = connection.cursor()
+        try:
+            c.execute(
+                """
+                SELECT 1 FROM ticker dt
+                JOIN currency ct1 ON dt.curr1 = ct1.ID
+                JOIN currency ct2 ON dt.curr2 = ct2.ID
+                WHERE ct1.curr = %s AND ct2.curr = %s AND dt.ticker = %s;
+                """,
+                (currency1, currency2, ticker)
+            )
+            # Fetch one record, if it exists
+            exists = c.fetchone() is not None
+            return exists
+
+        except psycopg2.Error as e:
+            logging.error("Error checking if ticker exists: %s", e)
+            return False
+        finally:
+            if connection:
+                self.release_connection(connection)
+
     def insert_price(self, data):
         """Insert a new price data."""
         connection = self.get_connection()
@@ -319,3 +344,5 @@ class PostgreStorage:
         finally:
             if connection:
                 self.release_connection(connection)
+
+        

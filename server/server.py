@@ -27,6 +27,16 @@ app = Flask(__name__)
 
 postgres = PostgreStorage(db_config)
 
+
+def validate_ticker_data(currency1, currency2, ticker, postgres, existing_ticker=None):
+    """Validate ticker data for adding or updating."""
+    if not ticker:
+        raise ValueError('Missing required field: Ticker')
+    elif currency1 == currency2:
+        raise ValueError('Currency1 cannot be the same as Currency2')
+    elif postgres.ticker_exists(currency1, currency2, ticker) and ticker != existing_ticker:
+        raise ValueError('Ticker already exists')
+
 @app.route('/price_data')
 def gets_data():
     """Retrieve price data."""
@@ -57,11 +67,17 @@ def ticker_post():
         currency2 = request.json.get('currency2')
         ticker = request.json.get('ticker')
 
+        # Validate data
+        validate_ticker_data(currency1, currency2, ticker, postgres)
+
         data = [currency1,currency2,ticker]
         postgres.insert_ticker(data)
 
         logging.info('Data inserted successfully')
         return jsonify({'message': 'Data inserted successfully'}), 200
+    except ValueError as ve:
+        logging.warning('Validation error: %s', str(ve))
+        return jsonify({'error': str(ve)}), 400
     except Exception as e:
         logging.error('Error inserting ticker data : %s', str(e))
         return jsonify({'error': str(e)}), 500
@@ -96,11 +112,15 @@ def ticker_delete():
 def ticker_update():
     """Update ticker data."""
     try:
-        cur1 = request.json.get('currency1')
-        cur2 = request.json.get('currency2')
+        currency1 = request.json.get('currency1')
+        currency2 = request.json.get('currency2')
         ticker = request.json.get('ticker')
         existing_ticker = request.json.get('existing_ticker')
-        data = [cur1,cur2,ticker,existing_ticker]
+        data = [currency1,currency2,ticker,existing_ticker]
+
+        # Validate data
+        validate_ticker_data(currency1, currency2, ticker, postgres)
+
         postgres.update_ticker(data)
         logging.info("Row with ID %s updated successfully", existing_ticker)
         return jsonify({'message': f"Row with ID {existing_ticker} updated successfully"}), 200

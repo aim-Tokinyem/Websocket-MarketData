@@ -5,191 +5,219 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Exchange Rates</title>
     <style>
+        /* General Styles */
         body {
             background-color: #1a1a1a;
             color: #ffffff;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
         h1, h2, h3, h4 {
             text-align: center;
             margin-top: 30px;
+            color: #df9100;
         }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        input[type="text"],
-        select,
-        button {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #555;
-            background-color: #333;
-            color: #fff;
-        }
-        input[type="text"]:focus,
-        select:focus {
-            outline: none;
+        .link {
+            text-decoration: none;
+            font-weight: bold;
+            color: #df9100;
         }
 
-        .container {
-            text-align: right;
-            padding: 10px;
-            margin-right: 10px;
+        /* Navbar Placeholder */
+        #navbar {
+            background-color: #2a2a2a;
+            z-index: 2;
+            /* padding: 10px;
+            text-align: center; */
         }
-        #filter-container {
+
+        /* Full-screen Sections */
+        .hero-section, .container, .how-to-section {            
+            height: 100vh; /* Each section takes up 100% of the viewport height */
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
         }
-        #filter-container label {
-            margin: 0 10px;
-        }
-        #filter-container input {
-            padding: 10px;
-            margin: 0 10px;
-            border: 1px solid #555;
-            border-radius: 5px;
-            background-color: #333;
-            color: #fff;
-        }
-        #filter-container input:focus {
-            outline: none;
-            border-color: #888;
-        }
-        .styled-table-container {
-            width: 98%;
-            height: 550px; /* Set your desired height */
-            overflow: auto;
-            margin-left: 15px;
-            margin-right: 15px;
-            margin-bottom: 15px;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-        }
-        .styled-table {
-            width: 98%;
-            border-collapse: collapse;
-            border-spacing: 0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-left: 15px;
-            margin-right: 15px;
-            margin-bottom: 15px;
-            font-size: 0.9em;
-            font-family: sans-serif;
-            min-width: 400px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-        }
-        .styled-table thead {
-            background-color: #313131;
+        /* Hero Section */
+        .hero-section {
+            position: relative; /* Enable positioning for overlay */
+            background: url("{{ url_for('static', filename='images/BG-HOME.png') }}") no-repeat center center/cover;
+            /* background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('currency-background.jpg') no-repeat center center/cover; */
+            /* background-attachment: scroll; Ensure background scrolls with the page */
             color: #ffffff;
-            text-align: left;
-            position: sticky; /* Keeps the header fixed when scrolling */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            z-index: 0; 
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
             top: 0;
-            z-index: 1;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.507); 
-        }
-
-        .styled-table th,
-        .styled-table td {
-            padding: 12px 15px;
-        }
-
-        .styled-table tbody {
-            display: block;
-            overflow-y: auto;
-            overflow-x: hidden;
-            max-height: calc(93vh - 200px);
-        }
-
-        .styled-table thead,
-        .styled-table tbody tr {
-            display: table;
+            left: 0;
             width: 100%;
-            table-layout: fixed;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85); /* Dark semi-transparent overlay */
+            z-index: 1; /* Ensure overlay is behind text */
         }
-        
-        .styled-table tbody tr {
-            border-bottom: 1px solid #2e2e2e;
+        .hero-section h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            z-index: 2;
         }
-
-        .styled-table tbody tr:nth-of-type(even) {
-            background-color: #2e2e2e;
+        .hero-section p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            z-index: 2;
         }
-
-        .updated-row {
-            background-color: #e68a00 !important; /* Use !important to ensure the color is applied */
+        .hero-section .cta-button {
+            background-color: #df9100;
+            color: #ffffff;
+            padding: 15px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            z-index: 2;
         }
-
-        /* Styling the scrollbar for WebKit browsers (e.g., Chrome, Safari) */
-        .styled-table tbody::-webkit-scrollbar, select::-webkit-scrollbar {
-            background-color: #202020;
-            width: 5px; /* Width of the scrollbar */
-        }
-
-        .styled-table tbody::-webkit-scrollbar-thumb, select::-webkit-scrollbar-thumb {
-            background-color: #df9100; /* Color of the scrollbar thumb */
-            border-radius: 6px; /* Roundness of the scrollbar thumb */
-        }
-
-        .styled-table tbody::-webkit-scrollbar-track, select::-webkit-scrollbar-track {
-            background-color: #333; /* Color of the scrollbar track */
-            border-radius: 6px; /* Roundness of the scrollbar track */
+        .hero-section .cta-button:hover {
+            background-color: #e68a00;
         }
 
-        select::-webkit-scrollbar-thumb:hover {
-            background-color: #e68a00; /* Darker shade on hover */
-        }
-        /* Main container to account for navbar width */
+        /* Main Container */
         .main-container {
             text-align: center;
-            margin-left: 250px; /* Width of navbar (200px) + some space */
-            padding: 20px;
-            flex-grow: 1; /* Ensures the content takes up the remaining space */
+            margin-left: 220px;
+            width: 100%;
+            /* padding: 20px; */
         }
-        .container {
+
+        /* How-to Section */
+        .how-to-section {
+            background-color: #333;
+            color: #ffffff;
+            padding: 50px 20px;
+        }
+        .how-to-section h2 {
+            margin-bottom: 40px;
+            color: #df9100;
+        }
+        .steps {
             display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 10px;
-            margin-right: 10px;
-            gap: 10px; /* Space between input fields and buttons */
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .step {
+            flex: 1;
+            min-width: 280px;
+            max-width: 320px;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .step:hover {
+            transform: scale(1.05);
+        }
+        .step h3 {
+            margin-bottom: 20px;
+            color: #df9100;
+        }
+        .step p {
+            font-size: 0.9rem;
+        }
+
+        /* Footer Styles */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #2a2a2a;
+            color: #fff;
+            margin-top: 50px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            .hero-section p {
+                font-size: 1rem;
+            }
+            .steps {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
 <body>
-  <div id="navbar"></div>
-    <div class="main-container">
-        <h1>Welcome to the Real-Time Currency Tracker</h1>
-        <h2>Track Currency Exchange Rates in Real-Time</h2>
-
-        <!-- Additional Content -->
-        <div class="content">
-            <br><br>
-            <p>This application provides you with real-time updates on currency exchange rates from around the world.</p>
-            <!-- <p>Use the navigation above to explore different features and stay updated with the latest market trends.</p> -->
-        </div>
-
-        <!-- <footer>
-            <p>&copy; 2024 Live Exchange Rates. All rights reserved.</p>
-        </footer> -->
+    <div id="navbar">
+        <!-- Placeholder for the navbar before it loads -->
+        <p>Loading navigation...</p>
     </div>
 
-    
+    <div class="main-container">
 
-</body>
-</html>
-<script>
-          // Fetch the navbar.html content using Fetch API
-          fetch('navbar.html')
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1>Welcome to the Real-Time Currency Tracker</h1>
+        <p>Track Currency Exchange Rates in Real-Time</p>
+        <a href="#how-to" class="cta-button">Learn How to Use</a>
+    </section>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        <h2>Your Gateway to Global Currency Tracking</h2>
+        <p>This application provides you with real-time updates on currency exchange rates from around the world.</p>
+    </div>
+
+    <!-- How-to Section -->
+    <section id="how-to" class="how-to-section">
+        <h2>How to Use This Application</h2>
+        <div class="steps">
+            <div class="step">
+                <h3>Step 1</h3>
+                <p>Go to the <a class="link" href="ticker_list">Ticker List Page </a> and enter the currency pair and ticker symbol.</p>
+            </div>
+            <div class="step">
+                <h3>Step 2</h3>
+                <p>Proceed to the <a class="link" href="price_list">Price List Page</a> to view the results.</p>
+            </div>
+            <div class="step">
+                <h3>Step 3</h3>
+                <p>Review and analyze the data displayed to make informed decisions or further actions.</p>
+            </div>
+        </div>
+    </section>
+</div>
+    <!-- Footer
+    <footer>
+        <p>&copy; 2024 Live Exchange Rates. All rights reserved.</p>
+    </footer> -->
+
+    <script>
+        // Fetch the navbar.html content using Fetch API
+        fetch('navbar.html')
             .then(response => response.text())
             .then(data => {
-                // Insert the navbar HTML into the div with id="navbar"
                 document.getElementById('navbar').innerHTML = data;
             })
             .catch(error => console.error('Error fetching navbar:', error));
-</script>
+    </script>
+</body>
+</html>

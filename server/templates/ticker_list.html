@@ -453,6 +453,20 @@
         });
         
 
+        function addRow(){
+            $('#overlay').fadeIn(); // Show the overlay
+            $('#add-modal').fadeIn(); // Show the modal
+            $('#add-button').off('click').on('click', function() {
+                submitData(ticker);
+                $('#add-modal').fadeOut();
+                $('#overlay').fadeOut();
+            });
+            $('#cancel-button3').off('click').on('click', function() {
+                $('#add-modal').fadeOut(); // Hide the modal
+                $('#overlay').fadeOut(); // Hide the overlay
+            });
+        }
+        
         function editRow(currency1, currency2, ticker) {
             console.log('Edit button clicked for ticker:', ticker);
             currentEditTicker = ticker; // Store the current ticker value
@@ -497,20 +511,6 @@
             fetchData();
         });
 
-        function addRow(){
-            $('#overlay').fadeIn(); // Show the overlay
-            $('#add-modal').fadeIn(); // Show the modal
-            $('#add-button').off('click').on('click', function() {
-                submitData(ticker);
-                $('#add-modal').fadeOut();
-                $('#overlay').fadeOut();
-            });
-            $('#cancel-button3').off('click').on('click', function() {
-                $('#add-modal').fadeOut(); // Hide the modal
-                $('#overlay').fadeOut(); // Hide the overlay
-            });
-        }
-
         function submitData() {
             var currency1 = document.getElementById('currency1').value;
             var currency2 = document.getElementById('currency2').value;
@@ -535,9 +535,11 @@
 
                     fetchData(); // Refresh data after successful submission
                 },
-                error: function(error) {
-                    console.error('Error adding data:', error.responseJSON.error);
-                    showNotification('Error adding data.', 'error');
+                error: function(jqXHR) {
+                    // Extract and handle the error message from the response
+                    var errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.error ? jqXHR.responseJSON.error : 'An unexpected error occurred.';
+                    console.error('Error adding data:', errorMsg);
+                    showNotification('Error adding data: ' + errorMsg, 'error');
                 }
             });
         }
@@ -609,9 +611,11 @@
                     showNotification('Data successfully updated!', 'success');
                     fetchData(); 
                 },
-                error: function(error) {
-                    console.error('Error updating data:', error.responseJSON.error);
-                    showNotification('Error updating data.', 'error');
+                error: function(jqXHR) {
+                    // Extract and handle the error message from the response
+                    var errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.error ? jqXHR.responseJSON.error : 'An unexpected error occurred.';
+                    console.error('Error updating data:', errorMsg);
+                    showNotification('Error updating data: ' + errorMsg, 'error');
                 }
             });
         }
