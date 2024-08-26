@@ -375,10 +375,15 @@
             })
             .catch(error => console.error('Error fetching footer :', error));
 
+        const apiToken = "{{ api_token }}";
+
         $(document).ready(function() {
             $.ajax({
                 url: '/currency_data',
                 type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken
+                },
                 success: function(response) {
                     populateDropdown('currency1', response.data);
                     populateDropdown('currency2', response.data);
@@ -403,6 +408,9 @@
             $.ajax({
                 url: '/ticker_data',
                 type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken
+                },
                 success: function(response) {
                     console.log('Received data:', response.data);
                     updateUI(response.data);
@@ -527,6 +535,9 @@
             $.ajax({
                 url: '/ticker_post', // Endpoint to submit data to Flask
                 type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken
+                },
                 contentType: 'application/json', // Set content type to JSON
                 data: JSON.stringify(data), // Send data as JSON
                 success: function(response) {
@@ -551,6 +562,9 @@
             $.ajax({
                 url: '/currency_data',
                 type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken
+                },
                 success: function(response) {
                     response.data.forEach(function(item) {
                         var option = $('<option></option>').attr('value', item[1]).text(item[1]);
@@ -572,7 +586,10 @@
             };
             $.ajax({
                 url: '/ticker_delete',
-                type: 'POST',
+                type: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken
+                },
                 contentType: 'application/json', // Set content type to JSON
                 data: JSON.stringify(data), // Send data as JSON
                 success: function(response) {
@@ -602,7 +619,10 @@
             console.log('Data being sent to backend:', data);
             $.ajax({
                 url: '/ticker_update',
-                type: 'POST',
+                type: 'PATCH',
+                headers: {
+                    'Authorization': 'Bearer ' + apiToken
+                },
                 contentType: 'application/json', 
                 data: JSON.stringify(data), 
                 success: function(response) {

@@ -10,9 +10,14 @@ import logging
 from flask import Flask, render_template, jsonify, request
 # from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from loggers.loggers_config import LoggerConfig
+from dotenv import load_dotenv
 
 from datastore.postgre import PostgreStorage
 from datastore.db_config import db_config
+
+from flask_httpauth import HTTPTokenAuth
+
+load_dotenv()
 
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.dirname(current_dir)
@@ -21,11 +26,25 @@ sys.path.append(parent_dir)
 logger_config = LoggerConfig('Server')
 
 app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'super-secret'
-
-# jwt = JWTManager(app)
+auth = HTTPTokenAuth(scheme='Bearer')
 
 postgres = PostgreStorage(db_config)
+
+# Hardcoded token
+API_TOKEN = os.getenv('API_TOKEN')
+
+# @app.route('/get_token')
+# def get_token():
+#     return jsonify({'token': API_TOKEN})
+
+@auth.verify_token
+def verify_auth_token(token):
+    return token == API_TOKEN
+
+@app.route('/protected')
+@auth.login_required
+def protected_route():
+    return jsonify({'message': 'This is protected data, accessible only with the correct token.'})
 
 
 def validate_ticker_data(currency1, currency2, ticker, postgres, existing_ticker=None):
@@ -38,6 +57,7 @@ def validate_ticker_data(currency1, currency2, ticker, postgres, existing_ticker
         raise ValueError('Ticker already exists')
 
 @app.route('/price_data')
+@auth.login_required
 def gets_data():
     """Retrieve price data."""
     try:
@@ -49,6 +69,7 @@ def gets_data():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/currency_data')
+@auth.login_required
 def currency_data():
     """Retrieve currency data."""
     try:
@@ -60,6 +81,7 @@ def currency_data():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/ticker_post', methods=['POST'])
+@auth.login_required
 def ticker_post():
     """Insert ticker data."""
     try:
@@ -84,6 +106,7 @@ def ticker_post():
 
 
 @app.route('/ticker_data')
+@auth.login_required
 def ticker_data():
     """Retrieve ticker data."""
     try:
@@ -95,12 +118,12 @@ def ticker_data():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/ticker_delete', methods=['POST'])
+@app.route('/ticker_delete', methods=['DELETE'])
+@auth.login_required
 def ticker_delete():
     """Delete ticker data."""
     try:
         ticker_name = request.json.get('data')  
-        print(ticker_name)
         postgres.delete_ticker(ticker_name)
         logging.info("Row with ID %s deleted successfully", ticker_name)
         return jsonify({'message': f"Row with ID {ticker_name} deleted successfully"}), 200
@@ -108,7 +131,8 @@ def ticker_delete():
         logging.error('Error deleting ticker data : %s', str(e))
         return jsonify({'error': str(e)}), 500
 
-@app.route('/ticker_update', methods=['POST'])
+@app.route('/ticker_update', methods=['PATCH'])
+@auth.login_required
 def ticker_update():
     """Update ticker data."""
     try:
@@ -133,7 +157,7 @@ def display_data():
     """Display price list page."""
     try:
         logging.info('price_list.html')
-        return render_template('price_list.html')
+        return render_template('price_list.html', api_token=API_TOKEN)
     except Exception as e:
         logging.error('Error displaying price list page: %s', str(e))
         return str(e), 500
@@ -143,7 +167,7 @@ def ticker_list():
     """Display ticker list page."""
     try:
         logging.info('ticker_list.html')
-        return render_template('ticker_list.html')
+        return render_template('ticker_list.html', api_token=API_TOKEN)
     except Exception as e:
         logging.error('Error displaying ticker list page: %s', str(e))
         return str(e), 500
