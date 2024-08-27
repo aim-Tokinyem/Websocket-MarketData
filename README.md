@@ -44,6 +44,7 @@ Step-by-step instructions on how to get your project up and running.
    DB_PORT=
 
    LOG_DIR=
+   API_TOKEN=
 ```
 
 ## Usage

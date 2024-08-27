@@ -6,6 +6,7 @@ deletions, and selection queries.
 
 import logging
 import psycopg2
+from psycopg2 import sql
 from datetime import datetime
 from psycopg2 import pool # pylint: disable=unused-import
 from datastore.db_config import DBConfig
@@ -56,8 +57,8 @@ CREATE_TICKER_TABLE = """
     -- Table: public.ticker
     CREATE TABLE IF NOT EXISTS public.ticker (
         id SERIAL PRIMARY KEY,
-        curr1 INTEGER REFERENCES public.currency(id),
-        curr2 INTEGER REFERENCES public.currency(id),
+        curr1 INTEGER REFERENCES public.currency(id) ON DELETE CASCADE,
+        curr2 INTEGER REFERENCES public.currency(id) ON DELETE CASCADE,
         ticker VARCHAR(10) NOT NULL UNIQUE
     );
 """
@@ -66,7 +67,7 @@ CREATE_PRICE_TABLE = """
     -- Table: public.price
     CREATE TABLE IF NOT EXISTS public.price (
         id SERIAL PRIMARY KEY,
-        ticker_code INTEGER UNIQUE REFERENCES public.ticker(id),
+        ticker_code INTEGER NOT NULL UNIQUE REFERENCES public.ticker(id) ON DELETE CASCADE,
         datetime TIMESTAMPTZ,
         bid_size DOUBLE PRECISION,
         bid_price DOUBLE PRECISION,
@@ -81,17 +82,30 @@ class PostgreStorage:
     sid = "postgre"
 
     def __init__(self, db_config: DBConfig):
-        db_params = {
+        self.default_db_params = {
+            'dbname': 'postgres',  # Connect to the default 'postgres' database
+            'user': db_config.db_user,
+            'password': db_config.db_pass,
+            'host': db_config.db_host,
+            'port': db_config.db_port
+        }
+        
+        self.db_params = {
             'dbname': db_config.db_name,
             'user': db_config.db_user,
             'password': db_config.db_pass,
             'host': db_config.db_host,
             'port': db_config.db_port
         }
+
+        # Create database if it does not exist
+        self.create_database_if_not_exists()
+
+        # Create a connection pool to the database
         self.connection_pool = psycopg2.pool.SimpleConnectionPool(
             minconn=1,
             maxconn=10,
-            **db_params
+            **self.db_params
         )
 
         self.conn = self.get_connection()
@@ -110,6 +124,28 @@ class PostgreStorage:
     def release_connection(self, connection):
         """Release a connection back to the connection pool."""
         self.connection_pool.putconn(connection)
+
+    def create_database_if_not_exists(self):
+        """Create the database if it does not exist."""
+        connection = None
+        try:
+            # Connect to the default database
+            connection = psycopg2.connect(**self.default_db_params)
+            connection.autocommit = True  # Required to create a database
+            with connection.cursor() as cursor:
+                # Check if the database exists
+                cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [self.db_params['dbname']])
+                if cursor.fetchone():
+                    logging.info("Database '%s' already exists.", self.db_params['dbname'])
+                else:
+                    # Create the database
+                    cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_params['dbname'])))
+                    logging.info("Database '%s' created.", self.db_params['dbname'])
+        except psycopg2.Error as e:
+            logging.error("Error creating database: %s", e)
+        finally:
+            if connection:
+                connection.close()
 
     def create_tables_if_not_exist(self, create_table_queries, name):
         """Create tables in case they do not exist."""
