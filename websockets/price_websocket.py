@@ -143,9 +143,32 @@ class WebSocketManager:
         if self.ws_manager:
             self.ws_manager.stop()
 
-    def run(self):
+    def run(self, command=None):
         """Runs WebSocket manager."""
         self.start_polling()
+
+        if command:
+            command = command.lower()
+            if command == "start":
+                logging.info("Starting websocket...")
+                self.start_websocket()
+            elif command == "stop":
+                logging.info("Pausing websocket...")
+                self.stop_websocket()
+            elif command == "restart":
+                logging.info("Restarting websocket...")
+                self.stop_websocket()
+                self.start_websocket()
+            elif command == "exit":
+                logging.info("Stopping websocket...")
+                self.stop_websocket()
+                self.stop_event.set()
+                self.polling_thread.join()
+                return
+            else:
+                logging.error(f"Invalid command: {command}")
+                print("Invalid command. Please use 'start', 'stop', 'restart', or 'exit'.")
+                return
 
         while True:
             command = input("Enter command (start/stop/restart/exit): ").strip().lower()
@@ -154,21 +177,18 @@ class WebSocketManager:
                 logging.info("Starting websocket...")
                 self.start_websocket()
             elif command == "stop":
-                logging.info("Pause websocket...")
+                logging.info("Pausing websocket...")
                 self.stop_websocket()
             elif command == "restart":
                 logging.info("Restarting websocket...")
                 self.stop_websocket()
                 self.start_websocket()
             elif command == "exit":
-                logging.info("Stop websocket...")
+                logging.info("Stopping websocket...")
                 self.stop_websocket()
                 self.stop_event.set()
                 self.polling_thread.join()
                 break
             else:
-                logging.error("""Invalid command. Please enter 'start',
-                                                            'stop',
-                                                            'restart',
-                                                            or 'exit'.""")
+                logging.error("Invalid command. Please enter 'start', 'stop', 'restart', or 'exit'.")
                 print("Invalid command. Please enter 'start', 'stop', 'restart', or 'exit'.")
