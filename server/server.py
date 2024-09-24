@@ -55,6 +55,8 @@ def validate_ticker_data(currency1, currency2, ticker, postgres, existing_ticker
         raise ValueError('Currency1 cannot be the same as Currency2')
     elif postgres.ticker_exists(currency1, currency2, ticker) and ticker != existing_ticker:
         raise ValueError('Ticker already exists')
+    else:
+       pass 
 
 @app.route('/price_data')
 @auth.login_required
